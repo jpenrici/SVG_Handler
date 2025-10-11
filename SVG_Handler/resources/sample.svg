@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+
+    <!-- Grupo principal -->
+    <g id="background" fill="#e0e0e0">
+        <rect x="0" y="0" width="300" height="200" />
+    </g>
+
+    <!-- Grupo com formas -->
+    <g id="shapes" transform="translate(20,20)">
+        <rect x="10" y="10" width="80" height="50" fill="lightblue" stroke="navy" stroke-width="2" />
+        <circle cx="150" cy="35" r="25" fill="lightcoral" stroke="maroon" stroke-width="2" />
+        <line x1="10" y1="120" x2="200" y2="120" stroke="green" stroke-width="3" />
+    </g>
+
+</svg>
