@@ -2,15 +2,14 @@
 
 #include <print>
 
-auto main() -> int
-{
-    std::println("Modern C++ 26 : Hello World!");
+auto main() -> int {
+  std::println("SVG HANDLER");
 
-    if (test()) {
-        std::println("Test is working!");
-    } else {
-        std::println("Test is not working!");
-    }
+  if (test_svg_handler()) {
+    std::println("App is working!");
+  } else {
+    std::println("App is not working!");
+  }
 
-    return 0;
+  return 0;
 }

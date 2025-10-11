@@ -1,10 +1,11 @@
 #include "svg_handler.hpp"
 
-auto test() -> bool
-{
-    return true;
-}
+#include <print>
 
-/*
-  Develop the code here.
-*/
+auto test_svg_handler() -> bool {
+  std::println("DEBUG: {}", __PRETTY_FUNCTION__);
+
+  // Run Main Test
+
+  return true;
+}
