@@ -32,7 +32,10 @@ auto main(int argc, char *argv[]) -> int {
   // Select test option
 
   // Test
-  testAll();
+  // testAll();
+
+  // Test string_utils.cpp
+  select_test('2');
 
   return 0;
 }
