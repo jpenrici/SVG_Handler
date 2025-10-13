@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cassert>
 #include <print>
-#include <ranges>
 #include <string>
 
 auto StringUtils::sanitize(std::string_view str) -> std::string {
@@ -27,12 +26,6 @@ auto StringUtils::sanitize(std::string_view str) -> std::string {
 
   bkp.erase(std::remove_if(bkp.begin(), bkp.end(), isInvisible), bkp.end());
 
-  // Replace '\>' to '>'
-  size_t pos{0};
-  while ((pos = bkp.find("/>", pos)) != std::string::npos) {
-    bkp.replace(pos, bkp.length(), ">");
-  }
-
   // Return sanitized string
   return bkp;
 }
@@ -49,6 +42,10 @@ auto StringUtils::validate(std::string_view svg) -> bool {
   auto count_greater = std::count(bkp.begin(), bkp.end(), '>');
   auto count_smaller = std::count(bkp.begin(), bkp.end(), '<');
 
+  if (count_smaller < 1 || count_greater < 1) {
+    return false;
+  }
+
   if (count_smaller != count_greater) {
     return false;
   }
@@ -57,10 +54,10 @@ auto StringUtils::validate(std::string_view svg) -> bool {
   return !bkp.empty();
 }
 
-auto StringUtils::process(std::string_view svg) -> std::vector<std::string> {
+auto StringUtils::prepare(std::string_view svg) -> std::vector<std::string> {
 
   if (!StringUtils::validate(svg)) {
-    std::println("Error!!!");
+    std::println("Error preparing SVG!");
     return {/* empty */};
   }
 
@@ -70,17 +67,18 @@ auto StringUtils::process(std::string_view svg) -> std::vector<std::string> {
   // Prepare output
   std::vector<std::string> result{};
   std::string str{};
+  bool flag{false};
   for (const auto &ch : bkp) {
-    if (ch == '>' || ch == '<' || ch == ' ') {
-      if (!str.empty()) {
-        result.push_back(str);
-        str.clear();
-      }
-      if (ch != ' ') {
-        result.push_back(std::string{ch});
-      }
-    } else {
+    if (ch == '<') {
+      flag = true;
+    }
+    if (flag) {
       str.push_back(ch);
+    }
+    if (ch == '>') {
+      flag = false;
+      result.push_back(str);
+      str.clear();
     }
   }
 
@@ -88,10 +86,37 @@ auto StringUtils::process(std::string_view svg) -> std::vector<std::string> {
   return result;
 }
 
-auto test_string_utils() -> bool {
-  std::println("DEBUG: {}", __PRETTY_FUNCTION__);
+auto StringUtils::process(std::string_view svg)
+    -> std::tuple<std::string,              // tag name
+                  std::vector<std::string>> // attributes
+{
+  if (!StringUtils::validate(svg)) {
+    std::println("Error processing SVG!");
+    return {/* empty */};
+  }
+
+  // Sanitize
+  std::string bkp{StringUtils::sanitize(svg)};
+
+  // Count < and >
+  auto count_greater = std::count(bkp.begin(), bkp.end(), '>');
+  auto count_smaller = std::count(bkp.begin(), bkp.end(), '<');
+
+  if (count_smaller != 1 || count_greater != 1) {
+    std::println("Invalid SVG!");
+    return {/* empty */};
+  }
+
+  // Separate Tags, Attributes
+  // TO DO
+
+  return {};
+}
+
+void test_string_utils() {
 
   using std::string_view;
+  using StringUtils::prepare;
   using StringUtils::process;
   using StringUtils::sanitize;
   using StringUtils::validate;
@@ -99,40 +124,34 @@ auto test_string_utils() -> bool {
   // Sanitization test
   assert(sanitize(string_view{"\t\r\v\f\b\n\0"}) == std::string{""});
   assert(sanitize(string_view{" \t\r\v\f\b\n\0"}) == std::string{" "});
-  assert(sanitize(string_view{"<tag />"}) == std::string{"<tag >"});
 
   // Valid test
   assert(validate(string_view{}) == false);
   assert(validate(string_view{" "}) == false);
+  assert(validate(string_view{"tag"}) == false);
   assert(validate(string_view{"<tag"}) == false);
-  assert(validate(string_view{" tag"}) == true);
   assert(validate(string_view{"<tag>"}) == true);
 
   // Process test
   std::string svg{"<svg width=\"200\" height=\"200\" "
                   "xmlns=\"http://www.w3.org/2000/svg\">"
+                  "<g id=\"group1\">"
                   "<circle cx=\"55\" cy=\"55\" r=\"55\" stroke=\"red\" "
-                  "stroke-width=\"4\" fill=\"yellow\" />"};
+                  "stroke-width=\"4\" fill=\"yellow\" />"
+                  "</g>"
+                  "</svg>"};
 
   std::vector<std::string> vec{
-      "<",
-      "svg",
-      "width=\"200\"",
-      "height=\"200\"",
-      "xmlns=\"http://www.w3.org/2000/svg\"",
-      ">",
-      "<",
-      "circle",
-      "cx=\"55\"",
-      "cy=\"55\"",
-      "r=\"55\"",
-      "stroke=\"red\"",
-      "stroke-width=\"4\"",
-      "fill=\"yellow\"",
-      ">",
-  };
+      "<svg width=\"200\" height=\"200\" "
+      "xmlns=\"http://www.w3.org/2000/svg\">",
+      "<g id=\"group1\">",
+      "<circle cx=\"55\" cy=\"55\" r=\"55\" stroke=\"red\" "
+      "stroke-width=\"4\" fill=\"yellow\" />",
+      "</g>", "</svg>"};
 
-  assert(process(svg) == vec);
+  // Identify < content >
+  auto result = prepare(svg);
+  assert(result == vec);
 
-  return true;
+  std::println("[TEST] {} : test completed", __PRETTY_FUNCTION__);
 }
