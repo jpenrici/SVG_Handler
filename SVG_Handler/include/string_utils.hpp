@@ -38,7 +38,8 @@ namespace StringUtils {
      * @param svg
      * @return Tuple with {tag name, attribute array}.
      */
-    auto process(std::string_view svg) -> std::tuple<std::string, std::vector<std::string>>;
+    auto process(std::string_view svg) -> std::tuple<std::string,
+                                                     std::vector<std::array<std::string, 2>>>;
 
 }
 

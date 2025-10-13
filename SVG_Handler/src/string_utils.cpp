@@ -1,8 +1,10 @@
 #include "string_utils.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <print>
+#include <ranges>
 #include <string>
 
 auto StringUtils::sanitize(std::string_view str) -> std::string {
@@ -87,16 +89,34 @@ auto StringUtils::prepare(std::string_view svg) -> std::vector<std::string> {
 }
 
 auto StringUtils::process(std::string_view svg)
-    -> std::tuple<std::string,              // tag name
-                  std::vector<std::string>> // attributes
+    -> std::tuple<std::string,                             // tag name
+                  std::vector<std::array<std::string, 2>>> // attributes
 {
   if (!StringUtils::validate(svg)) {
     std::println("Error processing SVG!");
     return {/* empty */};
   }
 
+  // Trim
+  auto trim = [](std::string &str) {
+    auto start = std::find_if_not(str.begin(), str.end(), ::isspace);
+    auto end = std::find_if_not(str.rbegin(), str.rend(), ::isspace).base();
+    return (start < end) ? std::string(start, end) : "";
+  };
+
+  // Split
+  auto split = [](std::string &str, char ch) {
+    auto vec = str | std::ranges::views::split(ch) |
+               std::ranges::views::transform([](auto const &sr) {
+                 return std::string_view(sr.begin(), sr.end());
+               }) |
+               std::ranges::to<std::vector<std::string>>();
+    return vec;
+  };
+
   // Sanitize
   std::string bkp{StringUtils::sanitize(svg)};
+  bkp = trim(bkp);
 
   // Count < and >
   auto count_greater = std::count(bkp.begin(), bkp.end(), '>');
@@ -107,10 +127,49 @@ auto StringUtils::process(std::string_view svg)
     return {/* empty */};
   }
 
-  // Separate Tags, Attributes
-  // TO DO
+  // Check position of < and >
+  if (!bkp.starts_with("<") || !bkp.ends_with(">")) {
+    std::println("Invalid SVG!");
+    return {/* empty */};
+  }
 
-  return {};
+  // Ignore
+  if (bkp.starts_with("<?") || bkp.starts_with("<!--")) {
+    std::println("Ignore input!");
+    return {/* empty */};
+  }
+
+  // Remove < and >
+  bkp = bkp.substr(1, bkp.size() - 2);
+  bkp = trim(bkp);
+  if (bkp.ends_with("/")) {
+    bkp = bkp.substr(0, bkp.size() - 2);
+  }
+
+  // Split
+  auto elements = split(bkp, ' ');
+
+  std::string tag = elements.front();
+  std::vector<std::array<std::string, 2>> attributes;
+  for (size_t i = 1; i < elements.size(); ++i) {
+    auto e = elements.at(i);
+    if (e.contains("=")) {
+      auto arr = split(e, '=');
+      if (arr.size() == 2) {
+        auto attr = trim(arr.front());
+        auto value = arr.back();
+        if (value.starts_with("\"")) {
+          value = value.substr(1, value.size() - 1);
+        }
+        if (value.ends_with("\"")) {
+          value = value.substr(0, value.size() - 1);
+        }
+        attributes.push_back({attr, value});
+      }
+    }
+  }
+
+  return {tag, attributes};
 }
 
 void test_string_utils() {
@@ -132,7 +191,7 @@ void test_string_utils() {
   assert(validate(string_view{"<tag"}) == false);
   assert(validate(string_view{"<tag>"}) == true);
 
-  // Process test
+  // Prepare test
   std::string svg{"<svg width=\"200\" height=\"200\" "
                   "xmlns=\"http://www.w3.org/2000/svg\">"
                   "<g id=\"group1\">"
@@ -141,7 +200,7 @@ void test_string_utils() {
                   "</g>"
                   "</svg>"};
 
-  std::vector<std::string> vec{
+  std::vector<std::string> vec1{
       "<svg width=\"200\" height=\"200\" "
       "xmlns=\"http://www.w3.org/2000/svg\">",
       "<g id=\"group1\">",
@@ -149,9 +208,40 @@ void test_string_utils() {
       "stroke-width=\"4\" fill=\"yellow\" />",
       "</g>", "</svg>"};
 
+  using Vector = std::vector<std::array<std::string, 2>>;
+  using Tuple = std::tuple<std::string, Vector>;
+
+  std::vector<Tuple> vec2{Tuple{{"svg"},
+                                {{"width", "200"},
+                                 {"height", "200"},
+                                 {"xmlns", "http://www.w3.org/2000/svg"}}},
+                          Tuple{"g", {{"id", "group1"}}},
+                          Tuple{"circle",
+                                {{"cx", "55"},
+                                 {"cy", "55"},
+                                 {"r", "55"},
+                                 {"stroke", "red"},
+                                 {"stroke-width", "4"},
+                                 {"fill", "yellow"}}},
+                          Tuple{"/g", {}}, Tuple{"/svg", {}}};
+
   // Identify < content >
-  auto result = prepare(svg);
-  assert(result == vec);
+  auto result1 = prepare(svg);
+  assert(result1 == vec1);
+
+  // Process simple string
+  std::string str = "< tag attr1=\"1\" attr2=\"2\" />";
+  Tuple tp{"tag", {{"attr1", "1"}, {"attr2", "2"}}};
+  auto result2 = process(str);
+  assert(result2 == tp);
+
+  // Process svg
+  if (vec2.size() == result1.size()) {
+    for (size_t i = 0; i < result1.size(); ++i) {
+      auto result3 = process(result1.at(i));
+      assert(result3 == vec2.at(i));
+    }
+  }
 
   std::println("[TEST] {} : test completed", __PRETTY_FUNCTION__);
 }
