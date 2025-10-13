@@ -19,7 +19,7 @@ add_library(svg_handler_lib
 )
 
 set(RESOURCE_FILES
-# image.png # example
+  resources/sample.svg
 )
 
 foreach(FILE ${RESOURCE_FILES})

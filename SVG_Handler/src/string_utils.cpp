@@ -142,7 +142,11 @@ auto StringUtils::process(std::string_view svg) -> TagTuple {
   bkp = trim(bkp);
 
   // Tag is closing with />
+  // <g>        -> is_closing = false
+  // <circle /> -> is_closing = true (self-closing)
+  // </g>       -> is_closing = true (closing)
   bool is_closing{false};
+
   if (bkp.ends_with("/")) {
     bkp.pop_back();
     is_closing = true;

@@ -35,7 +35,7 @@ auto main(int argc, char *argv[]) -> int {
   // testAll();
 
   // Test string_utils.cpp
-  select_test('2');
+  select_test('1');
 
   return 0;
 }

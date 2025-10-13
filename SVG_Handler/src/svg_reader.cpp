@@ -1,15 +1,72 @@
 #include "svg_reader.hpp"
 
+#include <cassert>
+#include <expected>
+#include <filesystem>
+#include <fstream>
 #include <print>
 
-auto test_svg_reader() -> bool {
-  std::println("DEBUG: {}", __PRETTY_FUNCTION__);
+using ExpectedFile = std::expected<std::ifstream, std::error_code>;
 
-  // Set URL
-  // Validate URL
-  // Load SVG file
-  // View SVG text
-  // Return text
+auto SvgReader::check(const std::filesystem::path &path) -> ExpectedFile {
+  std::error_code ec;
 
-  return true;
+  if (!std::filesystem::is_regular_file(path, ec) || ec) {
+    return std::unexpected(
+        ec ? ec : std::make_error_code(std::errc::no_such_file_or_directory));
+  }
+
+  std::ifstream file(path);
+  if (file.is_open()) {
+    return ExpectedFile(std::move(file)); // Success
+  } else {
+    return std::unexpected(std::make_error_code(std::errc::permission_denied));
+  }
+}
+
+auto SvgReader::load(std::string_view path) -> std::string {
+
+  if (path.empty()) {
+    std::println("[ERROR] : Invalid path! Path cannot be empty.");
+    return {/* empty */};
+  }
+
+  std::filesystem::path fpath(path);
+  std::string ext = fpath.extension().string();
+
+  std::transform(ext.begin(), ext.end(), ext.begin(),
+                 [](unsigned char c) { return std::tolower(c); });
+
+  if (ext != ".svg") {
+    std::println("[ERROR] : Invalid file extension!");
+    return {/* empty */};
+  }
+
+  auto file_expected = SvgReader::check(fpath);
+  if (file_expected.has_value()) {
+    std::ifstream &file = file_expected.value();
+    std::string content((std::istreambuf_iterator<char>(file)),
+                        std::istreambuf_iterator<char>());
+    file.close();
+    return content;
+  }
+
+  std::error_code ec = file_expected.error();
+  std::println("[ERROR] : Failed to open or read file '{}' . Error: {} ({}).",
+               path, ec.message(), ec.value());
+
+  return {/* empty */};
+}
+
+void test_svg_reader() {
+
+  std::string svg = SvgReader::load("resources/sample.svg");
+  assert(!svg.empty());
+
+  if (svg.empty()) {
+    std::println(
+        "[INFO] : Empty or invalid file! Check SVG file path and name.");
+  }
+
+  std::println("[TEST] {} : test completed", __PRETTY_FUNCTION__);
 }

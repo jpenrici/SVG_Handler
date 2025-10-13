@@ -1,5 +1,6 @@
 /*
  * Manipulates string to separate Tags and attributes.
+ * Simple lexical analysis.
  */
 
 #pragma once
@@ -16,6 +17,7 @@ namespace StringUtils {
 
     /**
      * @brief Sanitize string SVG.
+     *
      * @param str
      * @return String without special characters.
      */
@@ -23,6 +25,7 @@ namespace StringUtils {
 
     /**
      * @brief Validate SVG
+     *
      * @param svg
      * @return True if SVG can be processed in this algorithm.
      */
@@ -40,6 +43,7 @@ namespace StringUtils {
     /**
      * @brief Processes SVG.
      * This function reads an SVG and separates the tag and attributes.
+     *
      * @param svg
      * @return Tuple with {tag name, attribute array}.
      */
