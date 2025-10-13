@@ -9,6 +9,11 @@
 
 namespace StringUtils {
 
+    // Aliases
+    using Attribute = std::array<std::string, 2>; // {"name", "value"}
+    using Attributes = std::vector<Attribute>;
+    using TagTuple = std::tuple<std::string, Attributes, bool>; // {tag, attrs, is_closing}
+
     /**
      * @brief Sanitize string SVG.
      * @param str
@@ -38,8 +43,7 @@ namespace StringUtils {
      * @param svg
      * @return Tuple with {tag name, attribute array}.
      */
-    auto process(std::string_view svg) -> std::tuple<std::string,
-                                                     std::vector<std::array<std::string, 2>>>;
+    auto process(std::string_view svg) -> TagTuple;
 
 }
 

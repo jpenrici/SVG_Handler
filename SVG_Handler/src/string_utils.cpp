@@ -9,6 +9,7 @@
 
 auto StringUtils::sanitize(std::string_view str) -> std::string {
 
+  // Backup
   std::string bkp(str);
 
   // Remove Non-printable/Control Characters
@@ -88,10 +89,7 @@ auto StringUtils::prepare(std::string_view svg) -> std::vector<std::string> {
   return result;
 }
 
-auto StringUtils::process(std::string_view svg)
-    -> std::tuple<std::string,                             // tag name
-                  std::vector<std::array<std::string, 2>>> // attributes
-{
+auto StringUtils::process(std::string_view svg) -> TagTuple {
   if (!StringUtils::validate(svg)) {
     std::println("Error processing SVG!");
     return {/* empty */};
@@ -142,15 +140,25 @@ auto StringUtils::process(std::string_view svg)
   // Remove < and >
   bkp = bkp.substr(1, bkp.size() - 2);
   bkp = trim(bkp);
+
+  // Tag is closing with />
+  bool is_closing{false};
   if (bkp.ends_with("/")) {
-    bkp = bkp.substr(0, bkp.size() - 2);
+    bkp.pop_back();
+    is_closing = true;
   }
 
   // Split
   auto elements = split(bkp, ' ');
 
+  // Tag name
   std::string tag = elements.front();
-  std::vector<std::array<std::string, 2>> attributes;
+  if (tag.starts_with("/")) {
+    tag = tag.substr(1, tag.size() - 1);
+    is_closing = true;
+  }
+
+  Attributes attributes;
   for (size_t i = 1; i < elements.size(); ++i) {
     auto e = elements.at(i);
     if (e.contains("=")) {
@@ -169,7 +177,7 @@ auto StringUtils::process(std::string_view svg)
     }
   }
 
-  return {tag, attributes};
+  return {tag, attributes, is_closing};
 }
 
 void test_string_utils() {
@@ -178,6 +186,7 @@ void test_string_utils() {
   using StringUtils::prepare;
   using StringUtils::process;
   using StringUtils::sanitize;
+  using StringUtils::TagTuple;
   using StringUtils::validate;
 
   // Sanitization test
@@ -208,22 +217,22 @@ void test_string_utils() {
       "stroke-width=\"4\" fill=\"yellow\" />",
       "</g>", "</svg>"};
 
-  using Vector = std::vector<std::array<std::string, 2>>;
-  using Tuple = std::tuple<std::string, Vector>;
-
-  std::vector<Tuple> vec2{Tuple{{"svg"},
-                                {{"width", "200"},
-                                 {"height", "200"},
-                                 {"xmlns", "http://www.w3.org/2000/svg"}}},
-                          Tuple{"g", {{"id", "group1"}}},
-                          Tuple{"circle",
-                                {{"cx", "55"},
-                                 {"cy", "55"},
-                                 {"r", "55"},
-                                 {"stroke", "red"},
-                                 {"stroke-width", "4"},
-                                 {"fill", "yellow"}}},
-                          Tuple{"/g", {}}, Tuple{"/svg", {}}};
+  std::vector<TagTuple> vec2{TagTuple{{"svg"},
+                                      {{"width", "200"},
+                                       {"height", "200"},
+                                       {"xmlns", "http://www.w3.org/2000/svg"}},
+                                      false},
+                             TagTuple{"g", {{"id", "group1"}}, false},
+                             TagTuple{"circle",
+                                      {{"cx", "55"},
+                                       {"cy", "55"},
+                                       {"r", "55"},
+                                       {"stroke", "red"},
+                                       {"stroke-width", "4"},
+                                       {"fill", "yellow"}},
+                                      true},
+                             TagTuple{"g", {}, true},
+                             TagTuple{"svg", {}, true}};
 
   // Identify < content >
   auto result1 = prepare(svg);
@@ -231,7 +240,7 @@ void test_string_utils() {
 
   // Process simple string
   std::string str = "< tag attr1=\"1\" attr2=\"2\" />";
-  Tuple tp{"tag", {{"attr1", "1"}, {"attr2", "2"}}};
+  TagTuple tp{"tag", {{"attr1", "1"}, {"attr2", "2"}}, true};
   auto result2 = process(str);
   assert(result2 == tp);
 
