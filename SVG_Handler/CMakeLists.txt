@@ -30,16 +30,15 @@ endforeach()
 add_executable(${PROGRAM_NAME} cli/main.cpp)
 target_link_libraries(${PROGRAM_NAME} svg_handler_lib)
 
-# Test Executable
-add_executable(${PROGRAM_NAME}_test tests/test.cpp)
-target_link_libraries(${PROGRAM_NAME}_test svg_handler_lib)
-
-# Targets
 add_custom_target(run
     COMMAND ${PROGRAM_NAME} ${CMAKE_SOURCE_DIR}/resources/sample.svg
     DEPENDS ${PROGRAM_NAME}
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
+
+# Test All
+add_executable(${PROGRAM_NAME}_test tests/test.cpp)
+target_link_libraries(${PROGRAM_NAME}_test svg_handler_lib)
 
 add_custom_target(test_run
     COMMAND ${PROGRAM_NAME}_test
@@ -47,4 +46,21 @@ add_custom_target(test_run
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
+# Test using internal modules
+set(INTERNAL_TEST_MODULES
+    string_utils
+    svg_reader
+    #tree_utils
+    csv_exporter
+)
 
+foreach(MODULE_NAME IN LISTS INTERNAL_TEST_MODULES)
+    set(EXEC_NAME test_run_${MODULE_NAME})
+    add_executable(${EXEC_NAME} src/${MODULE_NAME}.cpp)
+    target_compile_definitions(${EXEC_NAME} PRIVATE BUILD_TEST_EXE)
+    add_custom_target(test_${MODULE_NAME}
+        COMMAND ${EXEC_NAME}
+        DEPENDS ${EXEC_NAME}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+endforeach()

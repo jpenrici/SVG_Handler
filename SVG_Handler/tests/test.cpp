@@ -33,8 +33,6 @@ auto main(int argc, char *argv[]) -> int {
 
   // Test
   // testAll();
-
-  // Test string_utils.cpp
   select_test('4');
 
   return 0;

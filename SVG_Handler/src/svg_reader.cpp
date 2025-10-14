@@ -74,3 +74,12 @@ void test_svg_reader() {
 
   std::println("[TEST] {} : test completed", __PRETTY_FUNCTION__);
 }
+
+#ifdef BUILD_TEST_EXE
+auto main() -> int {
+
+  test_svg_reader();
+
+  return 0;
+}
+#endif

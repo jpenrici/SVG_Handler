@@ -258,3 +258,12 @@ void test_string_utils() {
 
   std::println("[TEST] {} : test completed", __PRETTY_FUNCTION__);
 }
+
+#ifdef BUILD_TEST_EXE
+auto main() -> int {
+
+  test_string_utils();
+
+  return 0;
+}
+#endif

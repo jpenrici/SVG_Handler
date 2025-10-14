@@ -102,3 +102,12 @@ void test_csv_exporter() {
 
   std::println("[TEST] {} : test completed", __PRETTY_FUNCTION__);
 }
+
+#ifdef BUILD_TEST_EXE
+auto main() -> int {
+
+  test_csv_exporter();
+
+  return 0;
+}
+#endif
