@@ -6,8 +6,6 @@
 #include <fstream>
 #include <print>
 
-using ExpectedFile = std::expected<std::ifstream, std::error_code>;
-
 auto SvgReader::check(const std::filesystem::path &path) -> ExpectedFile {
   std::error_code ec;
 
@@ -16,9 +14,9 @@ auto SvgReader::check(const std::filesystem::path &path) -> ExpectedFile {
         ec ? ec : std::make_error_code(std::errc::no_such_file_or_directory));
   }
 
-  std::ifstream file(path);
-  if (file.is_open()) {
-    return ExpectedFile(std::move(file)); // Success
+  auto file = std::make_unique<std::ifstream>(path);
+  if (file->is_open()) {
+    return std::move(file);
   } else {
     return std::unexpected(std::make_error_code(std::errc::permission_denied));
   }
@@ -32,22 +30,28 @@ auto SvgReader::load(std::string_view path) -> std::string {
   }
 
   std::filesystem::path fpath(path);
-  std::string ext = fpath.extension().string();
 
+  std::string ext = fpath.extension().string();
   std::transform(ext.begin(), ext.end(), ext.begin(),
                  [](unsigned char c) { return std::tolower(c); });
 
   if (ext != ".svg") {
-    std::println("[ERROR] : Invalid file extension!");
+    std::println("[ERROR] : Invalid file extension! Expected .svg, got '{}'.",
+                 ext);
     return {/* empty */};
   }
 
   auto file_expected = SvgReader::check(fpath);
   if (file_expected.has_value()) {
-    std::ifstream &file = file_expected.value();
+    std::ifstream &file = *file_expected.value();
     std::string content((std::istreambuf_iterator<char>(file)),
                         std::istreambuf_iterator<char>());
     file.close();
+
+    if (content.empty()) {
+      std::println("[WARNING] : File is empty: '{}'.", path);
+    }
+
     return content;
   }
 

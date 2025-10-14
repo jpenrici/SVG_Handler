@@ -10,13 +10,16 @@
 
 namespace SvgReader {
 
+    using FileHandle = std::unique_ptr<std::ifstream>;
+    using ExpectedFile = std::expected<FileHandle, std::error_code>;
+
     /**
      * @brief Checks the existence of an SVG file.
      *
      * @param path
      * @return file or error
      */
-    auto check(const std::filesystem::path &path) -> std::expected<std::ifstream, std::error_code>;
+    auto check(const std::filesystem::path &path) -> ExpectedFile;
 
     /**
      * @brief Load SVG file.

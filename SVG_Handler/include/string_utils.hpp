@@ -10,7 +10,6 @@
 
 namespace StringUtils {
 
-    // Aliases
     using Attribute = std::array<std::string, 2>; // {"name", "value"}
     using Attributes = std::vector<Attribute>;
     using TagTuple = std::tuple<std::string, Attributes, bool>; // {tag, attrs, is_closing}
