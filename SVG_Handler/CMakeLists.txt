@@ -50,7 +50,7 @@ add_custom_target(test_run
 set(INTERNAL_TEST_MODULES
     string_utils
     svg_reader
-    #tree_utils
+    tree_utils
     csv_exporter
 )
 
