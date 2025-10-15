@@ -141,15 +141,15 @@ auto StringUtils::process(std::string_view svg) -> TagTuple {
   bkp = bkp.substr(1, bkp.size() - 2);
   bkp = trim(bkp);
 
-  // Tag is closing with />
-  // <g>        -> is_closing = false
-  // <circle /> -> is_closing = true (self-closing)
-  // </g>       -> is_closing = true (closing)
-  bool is_closing{false};
+  // Tag Type
+  // <g>        -> Open
+  // <circle /> -> Self-closing
+  // </g>       -> Close
+  auto tag_type{TagType::Open};
 
   if (bkp.ends_with("/")) {
     bkp.pop_back();
-    is_closing = true;
+    tag_type = TagType::SelfClose;
   }
 
   // Split
@@ -159,7 +159,7 @@ auto StringUtils::process(std::string_view svg) -> TagTuple {
   std::string tag = elements.front();
   if (tag.starts_with("/")) {
     tag = tag.substr(1, tag.size() - 1);
-    is_closing = true;
+    tag_type = TagType::Close;
   }
 
   Attributes attributes;
@@ -181,7 +181,7 @@ auto StringUtils::process(std::string_view svg) -> TagTuple {
     }
   }
 
-  return {tag, attributes, is_closing};
+  return {tag, attributes, tag_type};
 }
 
 void test_string_utils() {
@@ -191,6 +191,7 @@ void test_string_utils() {
   using StringUtils::process;
   using StringUtils::sanitize;
   using StringUtils::TagTuple;
+  using StringUtils::TagType;
   using StringUtils::validate;
 
   // Sanitization test
@@ -225,8 +226,8 @@ void test_string_utils() {
                                       {{"width", "200"},
                                        {"height", "200"},
                                        {"xmlns", "http://www.w3.org/2000/svg"}},
-                                      false},
-                             TagTuple{"g", {{"id", "group1"}}, false},
+                                      TagType::Open},
+                             TagTuple{"g", {{"id", "group1"}}, TagType::Open},
                              TagTuple{"circle",
                                       {{"cx", "55"},
                                        {"cy", "55"},
@@ -234,9 +235,9 @@ void test_string_utils() {
                                        {"stroke", "red"},
                                        {"stroke-width", "4"},
                                        {"fill", "yellow"}},
-                                      true},
-                             TagTuple{"g", {}, true},
-                             TagTuple{"svg", {}, true}};
+                                      TagType::SelfClose},
+                             TagTuple{"g", {}, TagType::Close},
+                             TagTuple{"svg", {}, TagType::Close}};
 
   // Identify < content >
   auto result1 = prepare(svg);
@@ -244,7 +245,7 @@ void test_string_utils() {
 
   // Process simple string
   std::string str = "< tag attr1=\"1\" attr2=\"2\" />";
-  TagTuple tp{"tag", {{"attr1", "1"}, {"attr2", "2"}}, true};
+  TagTuple tp{"tag", {{"attr1", "1"}, {"attr2", "2"}}, TagType::SelfClose};
   auto result2 = process(str);
   assert(result2 == tp);
 

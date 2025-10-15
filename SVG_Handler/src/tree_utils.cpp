@@ -4,59 +4,64 @@
 #include <print>
 #include <stack>
 
-#include "tree_utils.hpp"
-#include <print>
-#include <stack>
+using namespace TreeUtils;
 
-auto TreeUtils::validate(const std::vector<TagTuple> &svg_tagTuple)
-    -> ExpectedTree {
-
+auto TreeUtils::validate(const std::vector<TagTuple> &svg_tagTuple) -> Status {
   if (svg_tagTuple.empty()) {
     std::println("[ERROR] : Empty SVG tag sequence.");
-    return std::unexpected(Error::EmptyInput);
+    return Status::EmptyInput;
   }
 
   std::stack<std::string> tag_stack;
   bool has_root{false};
 
-  for (const auto &[tag, attrs, is_closing] : svg_tagTuple) {
+  for (const auto &[tag, attrs, tag_type] : svg_tagTuple) {
     if (tag.empty())
       continue;
 
-    if (!is_closing) {
+    switch (tag_type) {
+    case TagType::Open:
+      // Open tag (e.g. <tag>)
       if (tag_stack.empty()) {
         if (has_root) {
           std::println("[ERROR] : Multiple root elements detected.");
-          return std::unexpected(Error::InvalidRoot);
+          return Status::InvalidRoot;
         }
         has_root = true;
       }
       tag_stack.push(tag);
-    } else {
+      break;
+
+    case TagType::SelfClose:
+      // Self-closing tag (e.g. <tag />)
+      break;
+
+    case TagType::Close:
+      // Closed tag (e.g. </tag>)
       if (tag_stack.empty()) {
         std::println("[ERROR] : Closing tag </{}> without opening.", tag);
-        return std::unexpected(Error::UnbalancedTags);
+        return Status::UnbalancedTags;
       }
 
-      auto top = tag_stack.top();
-      tag_stack.pop();
-
-      if (top != tag) {
+      if (tag_stack.top() != tag) {
         std::println("[ERROR] : Tag mismatch: opened <{}> but closed </{}>.",
-                     top, tag);
-        return std::unexpected(Error::UnbalancedTags);
+                     tag_stack.top(), tag);
+        return Status::UnbalancedTags;
       }
+      tag_stack.pop();
+      break;
+    case TagType::Unknown:
+      break;
     }
   }
 
   if (!tag_stack.empty()) {
     std::println("[ERROR] : Unclosed tag(s) detected at end of file.");
-    return std::unexpected(Error::UnbalancedTags);
+    return Status::UnbalancedTags;
   }
 
-  Tree tree{};
   std::println("[INFO] : SVG structure validated successfully.");
-  return tree;
+  return Status::Success;
 }
 
 // void TreeUtils::view(const Node &node, int depth) {
@@ -67,52 +72,64 @@ auto TreeUtils::validate(const std::vector<TagTuple> &svg_tagTuple)
 
 void test_tree_utils() {
 
-  using TreeUtils::Error;
+  using TreeUtils::Status;
   using TreeUtils::TagTuple;
+  using TreeUtils::TagType;
   using TreeUtils::validate;
 
-  std::vector<TagTuple> valid_svg{{"svg", {}, false},
-                                  {"g", {}, false},
-                                  {"circle", {}, true},
-                                  {"g", {}, true},
-                                  {"svg", {}, true}};
+  // Empty SVG
+  assert(validate({}) == Status::EmptyInput);
 
-  auto result1 = validate(valid_svg);
-  assert(result1.has_value());
+  // Missing open tag closure.
+  std::vector<TagTuple> missing_close{{"svg", {}, TagType::Open},
+                                      {"g", {}, TagType::Open},
+                                      {"circle", {}, TagType::SelfClose},
+                                      {"svg", {}, TagType::Close}};
 
-  std::vector<TagTuple> invalid_svg1{{"svg", {}, false},
-                                     {"g", {}, false},
-                                     {"circle", {}, true},
-                                     {"svg", {}, true}};
+  assert(validate(missing_close) == Status::UnbalancedTags);
 
-  auto result2 = validate(invalid_svg1);
-  assert(!result2.has_value());
-  assert(result2.error() == Error::UnbalancedTags);
+  // Tag closure without opening.
+  std::vector<TagTuple> bad_close{{"svg", {}, TagType::Open},
+                                  {"circle", {}, TagType::SelfClose},
+                                  {"g", {}, TagType::Open}};
 
-  std::vector<TagTuple> invalid_svg2{
-      {"svg", {}, false}, {"circle", {}, true}, {"g", {}, true}};
+  assert(validate(bad_close) == Status::UnbalancedTags);
 
-  auto result3 = validate(invalid_svg2);
-  assert(!result3.has_value());
+  // Bad hierarchy
+  std::vector<TagTuple> bad_hierarchy{{"svg", {}, TagType::Open},
+                                      {"g", {}, TagType::Open},
+                                      {"svg", {}, TagType::Close},
+                                      {"g", {}, TagType::Close}};
 
-  std::vector<TagTuple> vec{TagTuple{{"svg"},
-                                     {{"width", "200"},
-                                      {"height", "200"},
-                                      {"xmlns", "http://www.w3.org/2000/svg"}},
-                                     false},
-                            TagTuple{"g", {{"id", "group1"}}, false},
-                            TagTuple{"circle",
-                                     {{"cx", "55"},
-                                      {"cy", "55"},
-                                      {"r", "55"},
-                                      {"stroke", "red"},
-                                      {"stroke-width", "4"},
-                                      {"fill", "yellow"}},
-                                     true},
-                            TagTuple{"g", {}, true}, TagTuple{"svg", {}, true}};
+  assert(validate(bad_hierarchy) == Status::UnbalancedTags);
 
-  // auto tree = TreeUtils::process(vec);
-  // TreeUtils::view(tree);
+  // Valid structure.
+  std::vector<TagTuple> valid_svg1{{"svg", {}, TagType::Open},
+                                   {"g", {}, TagType::Open},
+                                   {"circle", {}, TagType::SelfClose},
+                                   {"g", {}, TagType::Close},
+                                   {"svg", {}, TagType::Close}};
+
+  assert(validate(valid_svg1) == Status::Success);
+
+  std::vector<TagTuple> valid_svg2{
+      TagTuple{{"svg"},
+               {{"width", "200"},
+                {"height", "200"},
+                {"xmlns", "http://www.w3.org/2000/svg"}},
+               TagType::Open},
+      TagTuple{"g", {{"id", "group1"}}, TagType::Open},
+      TagTuple{"circle",
+               {{"cx", "55"},
+                {"cy", "55"},
+                {"r", "55"},
+                {"stroke", "red"},
+                {"stroke-width", "4"},
+                {"fill", "yellow"}},
+               TagType::SelfClose},
+      TagTuple{"g", {}, TagType::Close}, TagTuple{"svg", {}, TagType::Close}};
+
+  assert(validate(valid_svg2) == Status::Success);
 
   std::println("[TEST] {} : test completed", __PRETTY_FUNCTION__);
 }
