@@ -73,11 +73,15 @@ namespace TreeUtils {
     /**
      * @brief view
      * Print hierarchy
+     * root
+     * |_tag
+     * | |_attributes
+     * | |_tag
+     * |   |_attributes
      *
-     * @param node
-     * @param depth
+     * @param tree Tree structure containing the parsed SVG hierarchy.
      */
-    void view(const Node &node, int depth = 0);
+    void view(Tree& tree);
 
 } // namespace TreeUtils
 
