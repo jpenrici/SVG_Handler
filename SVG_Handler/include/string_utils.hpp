@@ -50,7 +50,7 @@ namespace StringUtils {
      */
     auto process(std::string_view svg) -> TagTuple;
 
-}
+} // namespace StringUtils
 
 /**
  * @brief Basic test.

@@ -32,8 +32,8 @@ auto main(int argc, char *argv[]) -> int {
   // Select test option
 
   // Test
-  // testAll();
-  select_test('4');
+  testAll();
+  // select_test('5');
 
   return 0;
 }

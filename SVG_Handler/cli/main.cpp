@@ -5,11 +5,7 @@
 auto main() -> int {
   std::println("SVG HANDLER");
 
-  if (test_svg_handler()) {
-    std::println("App is working!");
-  } else {
-    std::println("App is not working!");
-  }
+  // Menu CLI
 
   return 0;
 }

@@ -34,7 +34,7 @@ namespace CsvExporter {
     * @param delimiter char
     */
     void save(std::string_view path, const CsvTable &table, char delimiter = ',');
-}
+} // namespace CsvExporter
 
 /**
  * @brief Basic test.

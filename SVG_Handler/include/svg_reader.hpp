@@ -29,7 +29,7 @@ namespace SvgReader {
      */
     auto load(std::string_view path) -> std::string;
 
-}
+} // namespace SvgReader
 
 /**
  * @brief Basic test.
