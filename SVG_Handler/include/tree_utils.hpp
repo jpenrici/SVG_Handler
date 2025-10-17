@@ -73,11 +73,12 @@ namespace TreeUtils {
     /**
      * @brief view
      * Print hierarchy
+     *
      * root
-     * |_tag
-     * | |_attributes
-     * | |_tag
-     * |   |_attributes
+     * |_tag1
+     *   | attributes
+     *   |_tag2
+     *     | attributes
      *
      * @param tree Tree structure containing the parsed SVG hierarchy.
      */

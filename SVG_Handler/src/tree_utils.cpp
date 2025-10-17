@@ -136,29 +136,33 @@ void TreeUtils::view(Tree &tree) {
     return;
   }
 
-  std::println("[INFO] : SVG Tree Structure");
+  std::println("[INFO] : SVG Tree Structure\n");
 
-  std::function<void(const TreeUtils::Node *, int)> view_node;
+  std::function<void(const Node *, int)> view_node;
 
   view_node = [&](const Node *node, int depth) {
     if (!node)
       return;
 
+    // Prefix for indentation
+    std::string indent(depth * 2, ' ');
+
     // View tag
-    std::println("{}{}", std::string(depth * 2, ' '), node->tag);
+    if (depth == 0)
+      std::println("{}{}", indent, node->tag); // root
+    else
+      std::println("{}|_{}", std::string(depth * 2 - 2, ' '), node->tag);
 
-    // View tag attributes
+    // View attributes
     if (!node->attributes.empty()) {
-      for (const auto &[name, value] : node->attributes)
-        std::println("{}|_ {}=\"{}\"", std::string(depth * 2, ' '), name,
-                     value);
+      for (const auto &[name, value] : node->attributes) {
+        std::println("{}| {}=\"{}\"", indent, name, value);
+      }
     }
 
-    // View child tag
-    if (!node->children.empty()) {
-      for (const auto &child : node->children)
-        view_node(child.get(), depth + 1); // recursion
-    }
+    // View children
+    for (const auto &child : node->children)
+      view_node(child.get(), depth + 1); // recursion
   };
 
   view_node(tree.root.get(), 0);
@@ -278,6 +282,21 @@ void test_tree_utils() {
   assert(find_attr(c_attrs, "fill") == "yellow");
 
   // Hierarchy View
+  view(tree);
+
+  tree = process(std::vector<TagTuple>{{"svg", {}, TagType::Open},
+                                       {"g", {}, TagType::Open},
+                                       {"circle", {}, TagType::SelfClose},
+                                       {"rect", {}, TagType::SelfClose},
+                                       {"g", {}, TagType::Close},
+                                       {"g", {}, TagType::Open},
+                                       {"line", {}, TagType::SelfClose},
+                                       {"g", {}, TagType::Open},
+                                       {"circle", {}, TagType::SelfClose},
+                                       {"path", {}, TagType::SelfClose},
+                                       {"g", {}, TagType::Close},
+                                       {"g", {}, TagType::Close},
+                                       {"svg", {}, TagType::Close}});
   view(tree);
 
   std::println("[TEST] {} : test completed", __PRETTY_FUNCTION__);
