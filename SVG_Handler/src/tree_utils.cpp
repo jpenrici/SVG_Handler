@@ -129,6 +129,48 @@ auto TreeUtils::process(const std::vector<TagTuple> &svg_tagTuple) -> Tree {
   return tree;
 }
 
+auto TreeUtils::table(const Tree &tree) -> CsvTable {
+
+  if (!tree.root) {
+    std::println("[INFO] : Empty tree.");
+    return {};
+  }
+
+  CsvTable table;
+  CsvRow header{"ID", "ParentID", "Depth", "Tag", "Attribute", "Value"};
+  table.push_back(header);
+
+  size_t current_id = 0;
+
+  std::function<void(const Node *, int, int)> traverse;
+
+  traverse = [&](const Node *node, int depth, int parent_id) {
+    if (!node)
+      return;
+
+    size_t node_id = current_id++;
+
+    if (node->attributes.empty()) {
+      table.push_back({std::to_string(node_id), std::to_string(parent_id),
+                       std::to_string(depth), node->tag, "", ""});
+    } else {
+      for (const auto &[name, value] : node->attributes) {
+        table.push_back({std::to_string(node_id), std::to_string(parent_id),
+                         std::to_string(depth), node->tag, name, value});
+      }
+    }
+
+    // Children
+    for (const auto &child : node->children)
+      traverse(child.get(), depth + 1, static_cast<int>(node_id)); // recursion
+  };
+
+  // Initialize
+  traverse(tree.root.get(), 0, -1);
+
+  return table;
+}
+
 void TreeUtils::view(Tree &tree) {
 
   if (!tree.root) {
@@ -165,11 +207,14 @@ void TreeUtils::view(Tree &tree) {
       view_node(child.get(), depth + 1); // recursion
   };
 
+  // Initialize
   view_node(tree.root.get(), 0);
 }
 
 void test_tree_utils() {
 
+  using TreeUtils::CsvRow;
+  using TreeUtils::CsvTable;
   using TreeUtils::process;
   using TreeUtils::Status;
   using TreeUtils::TagTuple;
@@ -286,18 +331,78 @@ void test_tree_utils() {
 
   tree = process(std::vector<TagTuple>{{"svg", {}, TagType::Open},
                                        {"g", {}, TagType::Open},
-                                       {"circle", {}, TagType::SelfClose},
-                                       {"rect", {}, TagType::SelfClose},
+                                       {"circle",
+                                        {
+                                            {
+
+                                                {"attr1", "value1"},
+                                                {"attr2", "value2"},
+                                                {"attr3", "value3"},
+
+                                            },
+                                        },
+                                        TagType::SelfClose},
+                                       {"rect",
+                                        {
+                                            {
+
+                                                {"attr1", "value1"},
+
+                                            },
+                                        },
+                                        TagType::SelfClose},
                                        {"g", {}, TagType::Close},
                                        {"g", {}, TagType::Open},
                                        {"line", {}, TagType::SelfClose},
                                        {"g", {}, TagType::Open},
-                                       {"circle", {}, TagType::SelfClose},
+                                       {"circle",
+                                        {
+                                            {
+
+                                                {"attr1", "value1"},
+                                                {"attr2", "value2"},
+
+                                            },
+                                        },
+                                        TagType::SelfClose},
                                        {"path", {}, TagType::SelfClose},
                                        {"g", {}, TagType::Close},
                                        {"g", {}, TagType::Close},
                                        {"svg", {}, TagType::Close}});
   view(tree);
+
+  // Tree -> Csv Table
+  CsvTable csvTable =
+      table(process(std::vector<TagTuple>{{"svg", {}, TagType::Open},
+                                          {"g", {}, TagType::Open},
+                                          {"circle",
+                                           {{
+
+                                               {"attr1", "value1"},
+                                               {"attr2", "value2"},
+
+                                           }},
+                                           TagType::SelfClose},
+                                          {"g", {}, TagType::Close},
+                                          {"svg", {}, TagType::Close}}));
+
+  CsvTable csvTable_expected{
+      {"ID", "ParentID", "Depth", "Tag", "Attribute", "Value"}, // Header
+      {"0", "-1", "0", "svg", "", ""},                          // Root
+      {"1", "0", "1", "g", "", ""},                             // Level 1
+      {"2", "1", "2", "circle", "attr1", "value1"},             // Level 2
+      {"2", "1", "2", "circle", "attr2", "value2"}};            // Level 2
+
+  assert(!csvTable.empty());
+  assert(csvTable.size() == 5);
+
+  auto assert_csv_eq = [](const CsvTable &got, const CsvTable &expected) {
+    assert(got.size() == expected.size() && "CSV size mismatch!");
+    for (size_t i = 0; i < got.size(); ++i)
+      assert(got[i] == expected[i] && "CSV row mismatch!");
+  };
+
+  assert_csv_eq(csvTable, csvTable_expected);
 
   std::println("[TEST] {} : test completed", __PRETTY_FUNCTION__);
 }
