@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include "svg_core.hpp"
 #include "csv_exporter.hpp"
 #include "string_utils.hpp"
 #include "svg_reader.hpp"

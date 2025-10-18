@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "svg_core.hpp"
+
 #include <expected>
 #include <filesystem>
 #include <fstream>
@@ -15,8 +17,7 @@ namespace CsvExporter {
     using FileHandle = std::unique_ptr<std::ofstream>;
     using ExpectedFile = std::expected<FileHandle, std::error_code>;
 
-    using CsvRow = std::vector<std::string>;
-    using CsvTable = std::vector<CsvRow>;
+    using svg_core::CsvTable;
 
     /**
     * @brief Checks the existence of an CSV file.

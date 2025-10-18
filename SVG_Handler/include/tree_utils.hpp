@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "svg_core.hpp"
+
 #include <array>
 #include <expected>
 #include <memory>
@@ -13,11 +15,14 @@
 
 namespace TreeUtils {
 
-    enum class TagType {Unknown, Open, Close, SelfClose};
+    using svg_core::TagTuple; // {tag, attrs, tag type}
+    using svg_core::TagType; // {Unknown, Open, Close, SelfClose}
+    using svg_core::Attributes; // vector {"name", "value"}
 
-    using Attribute = std::array<std::string, 2>; // {"name", "value"}
-    using Attributes = std::vector<Attribute>;
-    using TagTuple = std::tuple<std::string, Attributes, TagType>; // {tag, attrs, tag type}
+    using svg_core::Status; // {Success, EmptyInput, InvalidRoot, UnbalancedTags}
+
+    using svg_core::CsvRow;
+    using svg_core::CsvTable;
 
     struct Node {
         std::string tag;
@@ -31,17 +36,6 @@ namespace TreeUtils {
     struct Tree {
         std::unique_ptr<Node> root;
     };
-
-    enum class Status {
-        Success,
-        EmptyInput,
-        InvalidRoot,
-        UnbalancedTags,
-        Unknown
-    };
-
-    using CsvRow = std::vector<std::string>;
-    using CsvTable = std::vector<CsvRow>;
 
     /**
      * @brief validate

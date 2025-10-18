@@ -5,16 +5,16 @@
 
 #pragma once
 
+#include "svg_core.hpp"
+
 #include <string_view>
 #include <vector>
 
 namespace StringUtils {
 
-    enum class TagType {Unknown, Open, Close, SelfClose};
-
-    using Attribute = std::array<std::string, 2>; // {"name", "value"}
-    using Attributes = std::vector<Attribute>;
-    using TagTuple = std::tuple<std::string, Attributes, TagType>; // {tag, attrs, tag type}
+    using svg_core::TagTuple; // {tag, attrs, tag type}
+    using svg_core::TagType; // {Unknown, Open, Close, SelfClose}
+    using svg_core::Attributes; // vector {"name", "value"}
 
     /**
      * @brief Sanitize string SVG.

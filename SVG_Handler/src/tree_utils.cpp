@@ -297,15 +297,15 @@ void test_tree_utils() {
   // Process Test : <svg> tag attributes
   const auto &svg_attrs = tree.root->attributes;
   assert(svg_attrs.size() == 3);
-  assert(svg_attrs[0][0] == "width" && svg_attrs[0][1] == "200");
-  assert(svg_attrs[1][0] == "height" && svg_attrs[1][1] == "200");
-  assert(svg_attrs[2][0] == "xmlns" &&
-         svg_attrs[2][1] == "http://www.w3.org/2000/svg");
+  assert(svg_attrs[0].first == "width" && svg_attrs[0].second == "200");
+  assert(svg_attrs[1].first == "height" && svg_attrs[1].second == "200");
+  assert(svg_attrs[2].first == "xmlns" &&
+         svg_attrs[2].second == "http://www.w3.org/2000/svg");
 
   // Process Test : <g> tag attributes
   const auto &g_attrs = g_node->attributes;
   assert(g_attrs.size() == 1);
-  assert(g_attrs[0][0] == "id" && g_attrs[0][1] == "group1");
+  assert(g_attrs[0].first == "id" && g_attrs[0].second == "group1");
 
   // Process Test : <circle /> tag attributes
   const auto &c_attrs = circle_node->attributes;
@@ -314,8 +314,8 @@ void test_tree_utils() {
   auto find_attr = [](const Attributes &attrs,
                       std::string_view key) -> std::string {
     for (auto &a : attrs)
-      if (a[0] == key)
-        return a[1];
+      if (a.first == key)
+        return a.second;
     return {};
   };
 
@@ -329,62 +329,63 @@ void test_tree_utils() {
   // Hierarchy View
   view(tree);
 
-  tree = process(std::vector<TagTuple>{{"svg", {}, TagType::Open},
-                                       {"g", {}, TagType::Open},
-                                       {"circle",
-                                        {
-                                            {
+  tree =
+      process(std::vector<TagTuple>{{"svg", {}, TagType::Open},
+                                    {"g", {}, TagType::Open},
+                                    {"circle",
+                                     {
+                                         {
 
-                                                {"attr1", "value1"},
-                                                {"attr2", "value2"},
-                                                {"attr3", "value3"},
+                                             std::make_pair("attr1", "value1"),
+                                             std::make_pair("attr2", "value2"),
+                                             std::make_pair("attr3", "value3"),
 
-                                            },
-                                        },
-                                        TagType::SelfClose},
-                                       {"rect",
-                                        {
-                                            {
+                                         },
+                                     },
+                                     TagType::SelfClose},
+                                    {"rect",
+                                     {
+                                         {
 
-                                                {"attr1", "value1"},
+                                             std::make_pair("attr1", "value1"),
 
-                                            },
-                                        },
-                                        TagType::SelfClose},
-                                       {"g", {}, TagType::Close},
-                                       {"g", {}, TagType::Open},
-                                       {"line", {}, TagType::SelfClose},
-                                       {"g", {}, TagType::Open},
-                                       {"circle",
-                                        {
-                                            {
+                                         },
+                                     },
+                                     TagType::SelfClose},
+                                    {"g", {}, TagType::Close},
+                                    {"g", {}, TagType::Open},
+                                    {"line", {}, TagType::SelfClose},
+                                    {"g", {}, TagType::Open},
+                                    {"circle",
+                                     {
+                                         {
 
-                                                {"attr1", "value1"},
-                                                {"attr2", "value2"},
+                                             std::make_pair("attr1", "value1"),
+                                             std::make_pair("attr2", "value2"),
 
-                                            },
-                                        },
-                                        TagType::SelfClose},
-                                       {"path", {}, TagType::SelfClose},
-                                       {"g", {}, TagType::Close},
-                                       {"g", {}, TagType::Close},
-                                       {"svg", {}, TagType::Close}});
+                                         },
+                                     },
+                                     TagType::SelfClose},
+                                    {"path", {}, TagType::SelfClose},
+                                    {"g", {}, TagType::Close},
+                                    {"g", {}, TagType::Close},
+                                    {"svg", {}, TagType::Close}});
   view(tree);
 
   // Tree -> Csv Table
-  CsvTable csvTable =
-      table(process(std::vector<TagTuple>{{"svg", {}, TagType::Open},
-                                          {"g", {}, TagType::Open},
-                                          {"circle",
-                                           {{
+  CsvTable csvTable = table(
+      process(std::vector<TagTuple>{{"svg", {}, TagType::Open},
+                                    {"g", {}, TagType::Open},
+                                    {"circle",
+                                     {{
 
-                                               {"attr1", "value1"},
-                                               {"attr2", "value2"},
+                                         std::make_pair("attr1", "value1"),
+                                         std::make_pair("attr2", "value2"),
 
-                                           }},
-                                           TagType::SelfClose},
-                                          {"g", {}, TagType::Close},
-                                          {"svg", {}, TagType::Close}}));
+                                     }},
+                                     TagType::SelfClose},
+                                    {"g", {}, TagType::Close},
+                                    {"svg", {}, TagType::Close}}));
 
   CsvTable csvTable_expected{
       {"ID", "ParentID", "Depth", "Tag", "Attribute", "Value"}, // Header

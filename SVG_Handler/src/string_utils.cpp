@@ -7,6 +7,8 @@
 #include <ranges>
 #include <string>
 
+using namespace svg_core;
+
 auto StringUtils::sanitize(std::string_view str) -> std::string {
 
   // Backup
@@ -176,7 +178,7 @@ auto StringUtils::process(std::string_view svg) -> TagTuple {
         if (value.ends_with("\"")) {
           value = value.substr(0, value.size() - 1);
         }
-        attributes.push_back({attr, value});
+        attributes.emplace_back(attr, value);
       }
     }
   }
@@ -199,11 +201,11 @@ void test_string_utils() {
   assert(sanitize(string_view{" \t\r\v\f\b\n\0"}) == std::string{" "});
 
   // Valid test
-  assert(validate(string_view{}) == false);
-  assert(validate(string_view{" "}) == false);
-  assert(validate(string_view{"tag"}) == false);
-  assert(validate(string_view{"<tag"}) == false);
-  assert(validate(string_view{"<tag>"}) == true);
+  assert(!validate(string_view{}));
+  assert(!validate(string_view{" "}));
+  assert(!validate(string_view{"tag"}));
+  assert(!validate(string_view{"<tag"}));
+  assert(validate(string_view{"<tag>"}));
 
   // Prepare test
   std::string svg{"<svg width=\"200\" height=\"200\" "

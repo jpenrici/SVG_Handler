@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "svg_core.hpp"
+
 #include <expected>
 #include <filesystem>
 #include <string>
