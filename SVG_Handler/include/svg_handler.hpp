@@ -24,7 +24,8 @@ namespace SVG_HANDLER {
 
         /**
          * @brief SVG
-         * @param file_path
+         * @param file_path_svg
+         * @param file_path_csv
          */
         explicit SVG(std::string_view file_path_svg, std::string_view file_path_csv);
 
@@ -33,10 +34,6 @@ namespace SVG_HANDLER {
          * Main pipeline
          */
         void execute();
-
-    private:
-        std::string file_path_svg_;
-        std::string file_path_csv_;
 
         /**
          * @brief load
@@ -72,7 +69,6 @@ namespace SVG_HANDLER {
          */
         auto build(const std::vector<StringUtils::TagTuple>& svg_tagTuple) -> TreeUtils::Tree;
 
-
         /**
          * @brief to_csv
          * Export to CSV (csv_exporter)
@@ -89,6 +85,10 @@ namespace SVG_HANDLER {
          * @param path
          */
         void export_csv(const TreeUtils::CsvTable& csvTable, std::string_view path);
+
+    private:
+        std::string file_path_svg_;
+        std::string file_path_csv_;
 
     }; // class SVG
 

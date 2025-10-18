@@ -46,7 +46,7 @@ namespace StringUtils {
      * This function reads an SVG and separates the tag and attributes.
      *
      * @param svg
-     * @return Tuple with {tag name, attribute array}.
+     * @return Tuple with {tag name, attribute array, tag type}.
      */
     auto process(std::string_view svg) -> TagTuple;
 
