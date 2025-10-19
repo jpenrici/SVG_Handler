@@ -30,26 +30,8 @@ auto SVG_HANDLER::SVG::tokenize(const std::vector<std::string> &tags)
 
 auto SVG_HANDLER::SVG::build(
     const std::vector<StringUtils::TagTuple> &svg_tagTuple) -> TreeUtils::Tree {
-
-  // Converts vector<StringUtils::TagTuple> -> vector<TreeUtils::TagTuple>
-  std::vector<TreeUtils::TagTuple> tuples;
-  tuples.reserve(svg_tagTuple.size());
-
-  for (const auto &t : svg_tagTuple) {
-    std::string tag;
-    StringUtils::Attributes s_attrs;
-    StringUtils::TagType s_type;
-
-    std::tie(tag, s_attrs, s_type) = t;
-    TreeUtils::Attributes t_attrs = s_attrs;
-    TreeUtils::TagType t_type = static_cast<TreeUtils::TagType>(s_type);
-
-    tuples.emplace_back(std::move(tag), std::move(t_attrs), t_type);
-  }
-
-  // Check and process
-  assert(TreeUtils::validate(tuples) == TreeUtils::Status::Success);
-  return TreeUtils::process(tuples);
+  assert(TreeUtils::validate(svg_tagTuple) == TreeUtils::Status::Success);
+  return TreeUtils::process(svg_tagTuple);
 }
 
 auto SVG_HANDLER::SVG::to_csv(const TreeUtils::Tree &tree)
@@ -69,16 +51,19 @@ void SVG_HANDLER::SVG::execute() {
   auto tree = build(tokens);
   auto table = to_csv(tree);
   export_csv(table, file_path_csv_);
-  std::println("[PIPELINE] SVG processing completed successfully.");
+  std::println("{}[PIPELINE]{} : SVG processing completed successfully.",
+               color::blue, color::reset);
 }
 
 void test_svg_handler() {
 
-  std::println("[TEST] Starting SVG handler test ...");
+  std::println("{}[TEST]{} : Starting SVG handler test ...", color::blue,
+               color::reset);
 
   // Integrated pipeline test
   SVG_HANDLER::SVG handler("resources/sample.svg", "sample.csv");
   handler.execute();
 
-  std::println("[TEST] {} : test completed", __PRETTY_FUNCTION__);
+  std::println("{}[TEST]{} : {} : test completed", color::green, color::reset,
+               __PRETTY_FUNCTION__);
 }

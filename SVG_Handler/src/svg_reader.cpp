@@ -25,7 +25,8 @@ auto SvgReader::check(const std::filesystem::path &path) -> ExpectedFile {
 auto SvgReader::load(std::string_view path) -> std::string {
 
   if (path.empty()) {
-    std::println("[ERROR] : Invalid path! Path cannot be empty.");
+    std::println("{}[ERROR]{} : Invalid path! Path cannot be empty.",
+                 color::red, color::reset);
     return {/* empty */};
   }
 
@@ -36,8 +37,9 @@ auto SvgReader::load(std::string_view path) -> std::string {
                  [](unsigned char c) { return std::tolower(c); });
 
   if (ext != ".svg") {
-    std::println("[ERROR] : Invalid file extension! Expected .svg, got '{}'.",
-                 ext);
+    std::println(
+        "{}[ERROR]{} : Invalid file extension! Expected .svg, got '{}'.",
+        color::red, color::reset, ext);
     return {/* empty */};
   }
 
@@ -49,15 +51,17 @@ auto SvgReader::load(std::string_view path) -> std::string {
     file.close();
 
     if (content.empty()) {
-      std::println("[WARNING] : File is empty: '{}'.", path);
+      std::println("{}[WARNING]{} : File is empty: '{}'.", color::yellow,
+                   color::reset, path);
     }
 
     return content;
   }
 
   std::error_code ec = file_expected.error();
-  std::println("[ERROR] : Failed to open or read file '{}' . Error: {} ({}).",
-               path, ec.message(), ec.value());
+  std::println(
+      "{}[ERROR]{} : Failed to open or read file '{}' . Error: {} ({}).",
+      color::red, color::reset, path, ec.message(), ec.value());
 
   return {/* empty */};
 }
@@ -69,10 +73,12 @@ void test_svg_reader() {
 
   if (svg.empty()) {
     std::println(
-        "[INFO] : Empty or invalid file! Check SVG file path and name.");
+        "{}[INFO]{} : Empty or invalid file! Check SVG file path and name.",
+        color::blue, color::reset);
   }
 
-  std::println("[TEST] {} : test completed", __PRETTY_FUNCTION__);
+  std::println("{}[TEST]{} : {} : test completed", color::green, color::reset,
+               __PRETTY_FUNCTION__);
 }
 
 #ifdef BUILD_TEST_EXE

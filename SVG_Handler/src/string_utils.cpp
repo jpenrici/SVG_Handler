@@ -62,8 +62,8 @@ auto StringUtils::validate(std::string_view svg) -> bool {
 auto StringUtils::prepare(std::string_view svg) -> std::vector<std::string> {
 
   if (!StringUtils::validate(svg)) {
-    std::println("Error preparing SVG!");
-    return {/* empty */};
+    std::println("{}[ERROR]{} : SVG structure is broken or invalid!",
+                 color::red, color::reset);
   }
 
   // Sanitize
@@ -93,7 +93,8 @@ auto StringUtils::prepare(std::string_view svg) -> std::vector<std::string> {
 
 auto StringUtils::process(std::string_view svg) -> TagTuple {
   if (!StringUtils::validate(svg)) {
-    std::println("Error processing SVG!");
+    std::println("{}[ERROR]{} : SVG structure is broken or invalid!",
+                 color::red, color::reset);
     return {/* empty */};
   }
 
@@ -123,19 +124,21 @@ auto StringUtils::process(std::string_view svg) -> TagTuple {
   auto count_smaller = std::count(bkp.begin(), bkp.end(), '<');
 
   if (count_smaller != 1 || count_greater != 1) {
-    std::println("Invalid SVG!");
+    std::println("{}[ERROR]{} : SVG structure is broken or invalid!",
+                 color::red, color::reset);
     return {/* empty */};
   }
 
   // Check position of < and >
   if (!bkp.starts_with("<") || !bkp.ends_with(">")) {
-    std::println("Invalid SVG!");
+    std::println("{}[ERROR]{} : SVG structure is broken or invalid!",
+                 color::red, color::reset);
     return {/* empty */};
   }
 
   // Ignore
   if (bkp.starts_with("<?") || bkp.starts_with("<!--")) {
-    std::println("Ignore input!");
+    // std::println("Ignore input!");
     return {/* empty */};
   }
 
@@ -259,7 +262,8 @@ void test_string_utils() {
     }
   }
 
-  std::println("[TEST] {} : test completed", __PRETTY_FUNCTION__);
+  std::println("{}[TEST]{} : {} : test completed", color::green, color::reset,
+               __PRETTY_FUNCTION__);
 }
 
 #ifdef BUILD_TEST_EXE

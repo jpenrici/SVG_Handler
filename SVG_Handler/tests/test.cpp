@@ -15,14 +15,6 @@
 
 #include <print>
 
-namespace color {
-constexpr auto reset = "\033[0m";
-constexpr auto green = "\033[32m";
-constexpr auto yellow = "\033[33m";
-constexpr auto blue = "\033[34m";
-constexpr auto red = "\033[31m";
-} // namespace color
-
 constexpr std::string_view USAGE =
     R"(Usage: ./svg_handler_cli_test test=<number>
         test=0  Run all tests
@@ -56,7 +48,7 @@ void select_test(char option) {
     test_svg_handler();
     break;
   default:
-    std::println("{}[ERROR]{} Invalid option '{}'.", color::red, color::reset,
+    std::println("{}[ERROR]{} : Invalid option '{}'.", color::red, color::reset,
                  option);
     std::println("{}{}{}", color::blue, USAGE, color::reset);
     std::exit(EXIT_FAILURE);
@@ -65,7 +57,8 @@ void select_test(char option) {
 
 auto main(int argc, char *argv[]) -> int {
 
-  std::println("{}[INFO]{} SVG Handler Test Center", color::blue, color::reset);
+  std::println("{}[INFO]{} : SVG Handler Test Center", color::blue,
+               color::reset);
 
   if (argc < 2) {
     std::println("{}{}{}", color::blue, USAGE, color::reset);
@@ -75,8 +68,9 @@ auto main(int argc, char *argv[]) -> int {
   std::string arg = argv[1];
   constexpr std::string_view prefix = "test=";
   if (!arg.starts_with(prefix)) {
-    std::println("{}[ERROR]{} Invalid argument '{}'. Expected format: test=<n>",
-                 color::red, color::reset, arg);
+    std::println(
+        "{}[ERROR]{} : Invalid argument '{}'. Expected format: test=<n>",
+        color::red, color::reset, arg);
     return EXIT_FAILURE;
   }
 
@@ -87,13 +81,13 @@ auto main(int argc, char *argv[]) -> int {
   else if (value.size() == 1 && std::isdigit(value[0]))
     select_test(value[0]);
   else {
-    std::println("{}[ERROR]{} Unknown test option '{}'.", color::red,
+    std::println("{}[ERROR]{} : Unknown test option '{}'.", color::red,
                  color::reset, value);
     return EXIT_FAILURE;
   }
 
   std::println();
-  std::println("{}[INFO]{} All requested tests completed successfully.",
+  std::println("{}[INFO]{} : All requested tests completed successfully.",
                color::green, color::reset);
 
   return EXIT_SUCCESS;

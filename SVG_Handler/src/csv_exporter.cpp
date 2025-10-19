@@ -28,7 +28,8 @@ void CsvExporter::save(std::string_view path, const CsvTable &table,
                        char delimiter) {
 
   if (path.empty()) {
-    std::println("[ERROR] : Invalid CSV path (empty).");
+    std::println("{}[ERROR]{} : Invalid CSV path (empty).", color::red,
+                 color::reset);
     return;
   }
 
@@ -37,8 +38,8 @@ void CsvExporter::save(std::string_view path, const CsvTable &table,
   auto file_expected = CsvExporter::check(fpath);
   if (!file_expected.has_value()) {
     std::error_code ec = file_expected.error();
-    std::println("[ERROR] : Failed to open CSV file '{}' : {} ({})", path,
-                 ec.message(), ec.value());
+    std::println("{}[ERROR]{} : Failed to open CSV file '{}' : {} ({})",
+                 color::red, color::reset, path, ec.message(), ec.value());
     return;
   }
 
@@ -79,9 +80,11 @@ void CsvExporter::save(std::string_view path, const CsvTable &table,
   }
 
   if (file.good()) {
-    std::println("[INFO] : CSV file saved successfully at '{}'.", path);
+    std::println("{}[INFO]{} : CSV file saved successfully at '{}'.",
+                 color::blue, color::reset, path);
   } else {
-    std::println("[ERROR] : Writing error occurred for '{}'.", path);
+    std::println("{}[ERROR]{} : Writing error occurred for '{}'.", color::red,
+                 color::reset, path);
   }
 }
 
@@ -100,7 +103,8 @@ void test_csv_exporter() {
   assert(std::filesystem::exists(output, ec));
   assert(!ec);
 
-  std::println("[TEST] {} : test completed", __PRETTY_FUNCTION__);
+  std::println("{}[TEST]{} : {} : test completed", color::green, color::reset,
+               __PRETTY_FUNCTION__);
 }
 
 #ifdef BUILD_TEST_EXE

@@ -9,7 +9,8 @@ using namespace TreeUtils;
 
 auto TreeUtils::validate(const std::vector<TagTuple> &svg_tagTuple) -> Status {
   if (svg_tagTuple.empty()) {
-    std::println("[ERROR] : Empty SVG tag sequence.");
+    std::println("{}[ERROR]{} : Empty SVG tag sequence.", color::red,
+                 color::reset);
     return Status::EmptyInput;
   }
 
@@ -25,7 +26,8 @@ auto TreeUtils::validate(const std::vector<TagTuple> &svg_tagTuple) -> Status {
       // Open tag (e.g. <tag>)
       if (tag_stack.empty()) {
         if (has_root) {
-          std::println("[ERROR] : Multiple root elements detected.");
+          std::println("{}[ERROR]{} : Multiple root elements detected.",
+                       color::red, color::reset);
           return Status::InvalidRoot;
         }
         has_root = true;
@@ -40,13 +42,15 @@ auto TreeUtils::validate(const std::vector<TagTuple> &svg_tagTuple) -> Status {
     case TagType::Close:
       // Closed tag (e.g. </tag>)
       if (tag_stack.empty()) {
-        std::println("[ERROR] : Closing tag </{}> without opening.", tag);
+        std::println("{}[ERROR]{} : Closing tag </{}> without opening.",
+                     color::red, color::reset, tag);
         return Status::UnbalancedTags;
       }
 
       if (tag_stack.top() != tag) {
-        std::println("[ERROR] : Tag mismatch: opened <{}> but closed </{}>.",
-                     tag_stack.top(), tag);
+        std::println(
+            "{}[ERROR]{} : Tag mismatch: opened <{}> but closed </{}>.",
+            color::red, color::reset, tag_stack.top(), tag);
         return Status::UnbalancedTags;
       }
       tag_stack.pop();
@@ -57,11 +61,13 @@ auto TreeUtils::validate(const std::vector<TagTuple> &svg_tagTuple) -> Status {
   }
 
   if (!tag_stack.empty()) {
-    std::println("[ERROR] : Unclosed tag(s) detected at end of file.");
+    std::println("{}[ERROR]{} : Unclosed tag(s) detected at end of file.",
+                 color::red, color::reset);
     return Status::UnbalancedTags;
   }
 
-  std::println("[INFO] : SVG structure validated successfully.");
+  std::println("{}[INFO]{} : SVG structure validated successfully.",
+               color::blue, color::reset);
   return Status::Success;
 }
 
@@ -69,7 +75,8 @@ auto TreeUtils::process(const std::vector<TagTuple> &svg_tagTuple) -> Tree {
   Tree tree;
 
   if (svg_tagTuple.empty()) {
-    std::println("[ERROR] : Empty SVG tag sequence. Tree not created.");
+    std::println("{}[ERROR]{} : Empty SVG tag sequence. Tree not created.",
+                 color::red, color::reset);
     return tree;
   }
 
@@ -112,7 +119,8 @@ auto TreeUtils::process(const std::vector<TagTuple> &svg_tagTuple) -> Tree {
       if (!node_stack.empty())
         node_stack.pop();
       else
-        std::println("[WARN] : Unmatched closing tag </{}> ignored.", tag);
+        std::println("{}[WARN]{} : Unmatched closing tag </{}> ignored.",
+                     color::yellow, color::reset, tag);
       break;
     }
 
@@ -122,8 +130,8 @@ auto TreeUtils::process(const std::vector<TagTuple> &svg_tagTuple) -> Tree {
   }
 
   if (!node_stack.empty()) {
-    std::println("[WARN] : Unbalanced tree ({} unclosed tag(s)).",
-                 node_stack.size());
+    std::println("{}[WARN]{} : Unbalanced tree ({} unclosed tag(s)).",
+                 color::yellow, color::reset, node_stack.size());
   }
 
   return tree;
@@ -132,7 +140,7 @@ auto TreeUtils::process(const std::vector<TagTuple> &svg_tagTuple) -> Tree {
 auto TreeUtils::table(const Tree &tree) -> CsvTable {
 
   if (!tree.root) {
-    std::println("[INFO] : Empty tree.");
+    std::println("{}[INFO]{} : Empty tree.", color::blue, color::reset);
     return {};
   }
 
@@ -174,11 +182,11 @@ auto TreeUtils::table(const Tree &tree) -> CsvTable {
 void TreeUtils::view(Tree &tree) {
 
   if (!tree.root) {
-    std::println("[INFO] : Empty tree.");
+    std::println("{}[INFO]{} : Empty tree.", color::blue, color::reset);
     return;
   }
 
-  std::println("[INFO] : SVG Tree Structure\n");
+  std::println("{}[INFO]{} : SVG Tree Structure\n", color::blue, color::reset);
 
   std::function<void(const Node *, int)> view_node;
 
@@ -405,7 +413,8 @@ void test_tree_utils() {
 
   assert_csv_eq(csvTable, csvTable_expected);
 
-  std::println("[TEST] {} : test completed", __PRETTY_FUNCTION__);
+  std::println("{}[TEST]{} : {} : test completed", color::green, color::reset,
+               __PRETTY_FUNCTION__);
 }
 
 #ifdef BUILD_TEST_EXE

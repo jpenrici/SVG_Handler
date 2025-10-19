@@ -49,3 +49,13 @@ namespace svg_core {
     using CsvTable = std::vector<CsvRow>;
 
 } // namespace svg_core
+
+namespace color {
+
+    constexpr auto reset = "\033[0m";
+    constexpr auto green = "\033[32m";
+    constexpr auto yellow = "\033[33m";
+    constexpr auto blue = "\033[34m";
+    constexpr auto red = "\033[31m";
+
+} // namespace color
