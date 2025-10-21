@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>600</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>SVG Handler GUI</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QTreeWidget" name="treeWidget">
+      <column>
+       <property name="text">
+        <string>Tag</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>Attributes</string>
+       </property>
+      </column>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>600</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <addaction name="actionOpen"/>
+   <addaction name="actionExportCSV"/>
+   <addaction name="actionViewTree"/>
+  </widget>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open SVG</string>
+   </property>
+  </action>
+  <action name="actionExportCSV">
+   <property name="text">
+    <string>Export CSV</string>
+   </property>
+  </action>
+  <action name="actionViewTree">
+   <property name="text">
+    <string>View Tree</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

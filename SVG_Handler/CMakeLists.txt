@@ -22,9 +22,8 @@ set(RESOURCE_FILES
   resources/sample.svg
 )
 
-foreach(FILE ${RESOURCE_FILES})
-  file(COPY ${FILE} DESTINATION ${CMAKE_BINARY_DIR}/resources)
-endforeach()
+file(GLOB RESOURCE_FILES "resources/*")
+file(COPY ${RESOURCE_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/resources)
 
 # Main Executable (CLI)
 add_executable(${PROGRAM_NAME} cli/main.cpp)
@@ -34,6 +33,10 @@ add_custom_target(run
     COMMAND ${PROGRAM_NAME} ${CMAKE_SOURCE_DIR}/resources/sample.svg
     DEPENDS ${PROGRAM_NAME}
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
+set_target_properties(${PROGRAM_NAME} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/cli
 )
 
 # Test All
@@ -64,3 +67,47 @@ foreach(MODULE_NAME IN LISTS INTERNAL_TEST_MODULES)
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
 endforeach()
+
+# Qt GUI - Linux
+set(QT_MIN_VERSION "6.5.0")
+find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS Widgets REQUIRED)
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+
+set(QTGUI_SOURCES
+  gui_qt6/main.cpp
+  gui_qt6/mainwindow.cpp
+  gui_qt6/mainwindow.h
+  gui_qt6/mainwindow.ui
+)
+
+set(QTGUI_EXEC_NAME svg_handler_qt)
+
+qt_add_executable(${QTGUI_EXEC_NAME} ${QTGUI_SOURCES})
+
+target_link_libraries(${QTGUI_EXEC_NAME}
+    PRIVATE
+        svg_handler_lib
+        Qt6::Widgets
+)
+
+include(GNUInstallDirs)
+install(TARGETS ${QTGUI_EXEC_NAME}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+add_custom_target(run_qtgui
+    COMMAND ${QTGUI_EXEC_NAME}
+    DEPENDS ${QTGUI_EXEC_NAME}
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
+set_target_properties(${QTGUI_EXEC_NAME} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/gui
+)
+
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the build type" FORCE)
+endif()

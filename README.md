@@ -3,6 +3,8 @@
 # SVG Handler
 
 A modular C++ project for parsing, validating, visualizing, and exporting **SVG (Scalable Vector Graphics)** structures into **CSV** tables.
+Includes both **CLI** and **Qt6 GUI** frontends.
+
 Designed for clarity, modularity, and minimal dependencies.
 
 ---
@@ -19,6 +21,7 @@ The project is composed of several independent modules:
 | **csv_exporter** | Converts the tree into a CSV table for data analysis.                       |
 | **svg_handler**  | Orchestrates all modules into a single processing pipeline.                 |
 | **cli**          | Command-line interface for pipeline execution or visualization.             |
+| **gui_qt6**      | Qt6 desktop interface for visual exploration and CSV export.                |
 
 ---
 
@@ -27,6 +30,7 @@ The project is composed of several independent modules:
 * **C++ Standard:** C++23 or newer
 * **CMake:** Version 3.25 or higher
 * **Compiler:** GCC 15
+* **Qt:** Qt6 Widgets module (required only for GUI build)
 
 ---
 
@@ -40,32 +44,52 @@ cd SVG_Handler
 # Configure and build
 cmake -B build
 cmake --build build
-
-# Run CLI
-./build/svg_handler_cli resources/sample.svg output/sample.csv
 ```
 
 ---
 
-## CLI Usage
+## Command-Line Interface (CLI)
 
 ### Full pipeline
 
 ```bash
-./svg_handler_cli <input.svg> <output.csv>
+./build/svg_handler_cli resources/sample.svg output/sample.csv
 ```
 
 ### Validate only
 
 ```bash
-./svg_handler_cli --validate <input.svg>
+./build/svg_handler_cli --validate resources/sample.svg
 ```
 
 ### View SVG hierarchy
 
 ```bash
-./svg_handler_cli --view <input.svg>
+./build/svg_handler_cli --view resources/sample.svg
 ```
+
+---
+
+## Graphical Interface (Qt6 GUI)
+
+### Run GUI
+
+```bash
+cmake --build build --target run_qtgui
+```
+
+or execute directly:
+
+```bash
+./build/svg_handler_qt
+```
+
+### Features
+
+* Open and view SVG structure hierarchically
+* Inspect attributes of each tag
+* Export parsed data to CSV
+* Clean, dark-themed Qt6 interface
 
 ---
 
@@ -103,6 +127,11 @@ project/
 │   └── svg_handler.cpp
 ├── cli/
 │   └── main.cpp
+├── gui_qt6/
+│   ├── main.cpp
+│   ├── mainwindow.h
+│   ├── mainwindow.cpp
+│   └── mainwindow.ui
 ├── resources/
 │   └── sample.svg
 └── tests/
@@ -116,6 +145,7 @@ project/
 * [W3C SVG Specification](https://www.w3.org/TR/SVG2/)
 * [MDN Web Docs: SVG](https://developer.mozilla.org/en-US/docs/Web/SVG)
 * [SVG Tutorial - W3Schools](https://www.w3schools.com/graphics/svg_intro.asp)
+* [QT - Documentation](https://doc.qt.io/)
 
 ---
 
