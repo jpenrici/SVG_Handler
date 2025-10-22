@@ -4,22 +4,34 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QTreeWidgetItem>
+
 #include <print>
 
 using namespace SVG_HANDLER;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui_(std::make_unique<Ui::MainWindow>()) {
+
   ui_->setupUi(this);
   setWindowTitle("SVG Handler (Qt6 GUI)");
 
   ui_->treeWidget->header()->setSectionResizeMode(
       QHeaderView::ResizeToContents);
+
+  setupConnections();
+
+  ui_->statusbar->showMessage("Ready");
 }
 
 MainWindow::~MainWindow() = default;
 
-void MainWindow::on_actionOpen_triggered() {
+void MainWindow::setupConnections() {
+  connect(ui_->actionOpen, &QAction::triggered, this, &MainWindow::openFile);
+  connect(ui_->actionExportCSV, &QAction::triggered, this,
+          &::MainWindow::exportCSV);
+};
+
+void MainWindow::openFile() {
   QString filePath = QFileDialog::getOpenFileName(this, "Open SVG File", ".",
                                                   "SVG Files (*.svg)");
   if (filePath.isEmpty())
@@ -42,13 +54,16 @@ void MainWindow::on_actionOpen_triggered() {
 
     std::println("{}[INFO]{} : Loaded SVG successfully: {}", color::blue,
                  color::reset, filePath.toStdString());
+    auto filename =
+        std::filesystem::path(filePath.toStdString()).filename().c_str();
+    ui_->statusbar->showMessage(QString("Loaded: %1").arg(filename));
   } catch (const std::exception &e) {
     QMessageBox::critical(this, "Error",
                           QString("Failed to load SVG:\n%1").arg(e.what()));
   }
 }
 
-void MainWindow::on_actionExportCSV_triggered() {
+void MainWindow::exportCSV() {
   if (!svg_handler_) {
     QMessageBox::warning(this, "No SVG Loaded",
                          "Please open an SVG file first.");
@@ -68,24 +83,14 @@ void MainWindow::on_actionExportCSV_triggered() {
     auto table = svg_handler_->to_csv(tree);
     svg_handler_->export_csv(table, csvPath.toStdString());
 
-    QMessageBox::information(this, "Success", "CSV exported successfully!");
     currentCsvPath_ = csvPath;
+    QMessageBox::information(this, "Success", "CSV exported successfully!");
+    ui_->statusbar->showMessage(QString("Saved: %1").arg(currentCsvPath_),
+                                5000);
   } catch (const std::exception &e) {
     QMessageBox::critical(this, "Error",
                           QString("Export failed:\n%1").arg(e.what()));
   }
-}
-
-void MainWindow::on_actionViewTree_triggered() {
-  if (!svg_handler_) {
-    QMessageBox::warning(this, "No SVG Loaded",
-                         "Please open an SVG file first.");
-    return;
-  }
-
-  std::println("[DEBUG] ViewTree triggered.");
-
-  on_actionOpen_triggered();
 }
 
 void MainWindow::loadSvgToTree(const TreeUtils::Tree &tree) {

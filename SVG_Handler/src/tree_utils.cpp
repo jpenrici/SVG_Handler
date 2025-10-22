@@ -179,6 +179,50 @@ auto TreeUtils::table(const Tree &tree) -> CsvTable {
   return table;
 }
 
+auto TreeUtils::hierarchy(Tree &tree) -> std::string {
+
+  if (!tree.root) {
+    std::println("{}[INFO]{} : Empty tree.", color::blue, color::reset);
+    return {/* empty */};
+  }
+
+  std::string hierarchy_str{};
+
+  std::function<void(const Node *, int)> prepare_node;
+
+  prepare_node = [&](const Node *node, int depth) {
+    if (!node)
+      return;
+
+    // Prefix for indentation
+    std::string indent(depth * 2, ' ');
+
+    // Tag
+    if (depth == 0)
+      hierarchy_str.append(std::format("{}{}\n", indent, node->tag)); // root
+    else
+      hierarchy_str.append(
+          std::format("{}|_{}\n", std::string(depth * 2 - 2, ' '), node->tag));
+
+    // Attributes
+    if (!node->attributes.empty()) {
+      for (const auto &[name, value] : node->attributes) {
+        hierarchy_str.append(
+            std::format("{}| {}=\"{}\"\n", indent, name, value));
+      }
+    }
+
+    // Children
+    for (const auto &child : node->children)
+      prepare_node(child.get(), depth + 1); // recursion
+  };
+
+  // Initialize
+  prepare_node(tree.root.get(), 0);
+
+  return hierarchy_str;
+}
+
 void TreeUtils::view(Tree &tree) {
 
   if (!tree.root) {
@@ -187,36 +231,7 @@ void TreeUtils::view(Tree &tree) {
   }
 
   std::println("{}[INFO]{} : SVG Tree Structure\n", color::blue, color::reset);
-
-  std::function<void(const Node *, int)> view_node;
-
-  view_node = [&](const Node *node, int depth) {
-    if (!node)
-      return;
-
-    // Prefix for indentation
-    std::string indent(depth * 2, ' ');
-
-    // View tag
-    if (depth == 0)
-      std::println("{}{}", indent, node->tag); // root
-    else
-      std::println("{}|_{}", std::string(depth * 2 - 2, ' '), node->tag);
-
-    // View attributes
-    if (!node->attributes.empty()) {
-      for (const auto &[name, value] : node->attributes) {
-        std::println("{}| {}=\"{}\"", indent, name, value);
-      }
-    }
-
-    // View children
-    for (const auto &child : node->children)
-      view_node(child.get(), depth + 1); // recursion
-  };
-
-  // Initialize
-  view_node(tree.root.get(), 0);
+  std::println("{}", hierarchy(tree));
 }
 
 void test_tree_utils() {

@@ -65,14 +65,23 @@ namespace TreeUtils {
     auto table(const Tree& tree) -> CsvTable;
 
     /**
-     * @brief view
-     * Print hierarchy
+     * @brief hierarchy
+     * Transform Tree into String
      *
      * root
      * |_tag1
      *   | attributes
      *   |_tag2
      *     | attributes
+     *
+     * @param tree
+     * @return hierarchy string
+     */
+    auto hierarchy(Tree &tree) -> std::string;
+
+    /**
+     * @brief view
+     * Print hierarchy
      *
      * @param tree Tree structure containing the parsed SVG hierarchy.
      */

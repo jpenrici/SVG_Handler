@@ -42,8 +42,8 @@
    </property>
    <addaction name="actionOpen"/>
    <addaction name="actionExportCSV"/>
-   <addaction name="actionViewTree"/>
   </widget>
+  <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen">
    <property name="text">
     <string>Open SVG</string>
@@ -52,11 +52,6 @@
   <action name="actionExportCSV">
    <property name="text">
     <string>Export CSV</string>
-   </property>
-  </action>
-  <action name="actionViewTree">
-   <property name="text">
-    <string>View Tree</string>
    </property>
   </action>
  </widget>

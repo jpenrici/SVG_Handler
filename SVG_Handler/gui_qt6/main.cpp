@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QFontDatabase>
 #include <QStyleFactory>
+
 #include <print>
 
 auto main(int argc, char *argv[]) -> int {

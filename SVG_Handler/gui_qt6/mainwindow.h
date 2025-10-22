@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QString>
 #include <QTreeWidget>
+
 #include <memory>
 
 #include "svg_handler.hpp"
@@ -22,17 +23,17 @@ public:
   explicit MainWindow(QWidget *parent = nullptr);
   ~MainWindow() override;
 
-private slots:
-  void on_actionOpen_triggered();
-  void on_actionExportCSV_triggered();
-  void on_actionViewTree_triggered();
-
 private:
   std::unique_ptr<Ui::MainWindow> ui_;
   std::unique_ptr<SVG_HANDLER::SVG> svg_handler_;
 
   QString currentSvgPath_;
   QString currentCsvPath_;
+
+  void setupConnections();
+
+  void openFile();
+  void exportCSV();
 
   void loadSvgToTree(const TreeUtils::Tree &tree);
   void clearTreeView();
