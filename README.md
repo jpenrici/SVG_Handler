@@ -3,7 +3,7 @@
 # SVG Handler
 
 A modular C++ project for parsing, validating, visualizing, and exporting **SVG (Scalable Vector Graphics)** structures into **CSV** tables.
-Includes both **CLI** and **Qt6 GUI** frontends.
+Includes both **CLI** and **Qt6 GUI**/**GUI (GTKmm 4)** frontends.
 
 Designed for clarity, modularity, and minimal dependencies.
 
@@ -21,6 +21,7 @@ The project is composed of several independent modules:
 | **csv_exporter** | Converts the tree into a CSV table for data analysis.                       |
 | **svg_handler**  | Orchestrates all modules into a single processing pipeline.                 |
 | **cli**          | Command-line interface for pipeline execution or visualization.             |
+| **gui_gtk4**     | GTKmm4 desktop interface for visual exploration and CSV export.             |
 | **gui_qt6**      | Qt6 desktop interface for visual exploration and CSV export.                |
 
 ---
@@ -30,7 +31,22 @@ The project is composed of several independent modules:
 * **C++ Standard:** C++23 or newer
 * **CMake:** Version 3.25 or higher
 * **Compiler:** GCC 15
-* **Qt:** Qt6 Widgets module (required only for GUI build)
+* **Optional GUI Frameworks:**
+
+  * [Qt 6 Widgets](https://doc.qt.io/qt-6/qtwidgets-index.html)
+  * [GTKmm 4](https://gnome.pages.gitlab.gnome.org/gtkmm-documentation/)
+
+To install GTKmm 4 on Linux:
+
+```bash
+sudo apt install libgtkmm-4.0-dev
+```
+
+To install Qt 6 (Widgets module):
+
+```bash
+sudo apt install qt6-base-dev
+```
 
 ---
 
@@ -67,6 +83,29 @@ cmake --build build
 ```bash
 ./build/svg_handler_cli --view resources/sample.svg
 ```
+
+---
+
+## Graphical Interface (GTK4 GUI)
+
+### Run GUI
+
+```bash
+cmake --build build --target run_gtkmm
+```
+
+or execute directly:
+
+```bash
+./build/svg_handler_gtk
+```
+
+### Features
+
+* File selection dialog for loading SVG.
+* Hierarchical SVG tree visualization.
+* Export to CSV via save dialog.
+* Status bar feedback and error handling.
 
 ---
 
@@ -129,9 +168,13 @@ project/
 │   └── main.cpp
 ├── gui_qt6/
 │   ├── main.cpp
-│   ├── mainwindow.h
 │   ├── mainwindow.cpp
+│   ├── mainwindow.h
 │   └── mainwindow.ui
+├── gui_gtk4/
+│   ├── main.cpp
+│   ├── mainwindow.cpp
+│   └── mainwindow.hpp
 ├── resources/
 │   └── sample.svg
 └── tests/
@@ -145,7 +188,6 @@ project/
 * [W3C SVG Specification](https://www.w3.org/TR/SVG2/)
 * [MDN Web Docs: SVG](https://developer.mozilla.org/en-US/docs/Web/SVG)
 * [SVG Tutorial - W3Schools](https://www.w3schools.com/graphics/svg_intro.asp)
-* [QT - Documentation](https://doc.qt.io/)
 
 ---
 

@@ -68,7 +68,7 @@ foreach(MODULE_NAME IN LISTS INTERNAL_TEST_MODULES)
     )
 endforeach()
 
-# Qt GUI - Linux
+# Qt GUI
 set(QT_MIN_VERSION "6.5.0")
 find_package(Qt6 ${QT_MIN_VERSION} COMPONENTS Widgets REQUIRED)
 
@@ -105,7 +105,40 @@ add_custom_target(run_qtgui
 )
 
 set_target_properties(${QTGUI_EXEC_NAME} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/gui
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/gui_qt
+)
+
+# GTKmm 4 GUI
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTKMM gtkmm-4.0 REQUIRED)
+
+set(GTKMM_SOURCES
+    gui_gtkmm4/main.cpp
+    gui_gtkmm4/mainwindow.cpp
+    gui_gtkmm4/mainwindow.hpp
+)
+
+set(GTKMM_EXEC_NAME svg_handler_gtk)
+
+add_executable(${GTKMM_EXEC_NAME} ${GTKMM_SOURCES})
+
+target_include_directories(${GTKMM_EXEC_NAME} PRIVATE ${GTKMM_INCLUDE_DIRS})
+target_link_libraries(${GTKMM_EXEC_NAME}
+    PRIVATE
+        svg_handler_lib
+        ${GTKMM_LIBRARIES}
+)
+
+target_compile_options(${GTKMM_EXEC_NAME} PRIVATE ${GTKMM_CFLAGS_OTHER})
+
+add_custom_target(run_gtkmm
+    COMMAND ${GTKMM_EXEC_NAME}
+    DEPENDS ${GTKMM_EXEC_NAME}
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)
+
+set_target_properties(${GTKMM_EXEC_NAME} PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/gui_gtk
 )
 
 if(NOT CMAKE_BUILD_TYPE)
