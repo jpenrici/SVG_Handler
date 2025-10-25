@@ -96,14 +96,24 @@ namespace SVG_HANDLER {
 
 } // namespace SVG_HANDLER
 
+// Test
 void test_svg_handler();
 
-
-// C Interoperability Layer
+// C INTEROPERABILITY LAYER
 extern "C" {
 
-    void* svg_handler_create(const char* input_svg, const char* output_csv);
-    void svg_handler_execute(void* handler);
-    void svg_handler_destroy(void* handler);
+// Handle type
+typedef void *SvgHandlerPtr;
+
+// Lifecycle
+SvgHandlerPtr svg_handler_create(const char *input_svg, const char *output_csv);
+void svg_handler_execute(SvgHandlerPtr handler);
+void svg_handler_destroy(SvgHandlerPtr handler);
+
+// Export CSV as a 2D array of strings
+// Returns: pointer to contiguous string data
+// Caller must free() the returned memory with svg_handler_free_csv()
+char ***svg_handler_to_csv(SvgHandlerPtr handler, int *rows, int *cols);
+void svg_handler_free_csv(char ***data, int rows, int cols);
 
 }

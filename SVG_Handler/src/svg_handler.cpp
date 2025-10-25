@@ -1,6 +1,7 @@
 #include "svg_handler.hpp"
 
 #include <cassert>
+#include <cstring>
 #include <print>
 
 using namespace SVG_HANDLER;
@@ -68,26 +69,57 @@ void test_svg_handler() {
                __PRETTY_FUNCTION__);
 }
 
-// C Interoperability Layer
-extern "C" {
-
-void *svg_handler_create(const char *input_svg, const char *output_csv) {
-  try {
-    return new SVG_HANDLER::SVG(input_svg, output_csv);
-  } catch (...) {
+// C INTEROPERABILITY IMPLEMENTATION
+SvgHandlerPtr svg_handler_create(const char *input_svg,
+                                 const char *output_csv) {
+  if (!input_svg || !output_csv)
     return nullptr;
-  }
+  return new SVG(input_svg, output_csv);
 }
 
-void svg_handler_execute(void *handler) {
+void svg_handler_execute(SvgHandlerPtr handler) {
   if (!handler)
     return;
-  auto *svg = static_cast<SVG_HANDLER::SVG *>(handler);
-  svg->execute();
+  static_cast<SVG *>(handler)->execute();
 }
 
-void svg_handler_destroy(void *handler) {
-  delete static_cast<SVG_HANDLER::SVG *>(handler);
+void svg_handler_destroy(SvgHandlerPtr handler) {
+  if (handler)
+    delete static_cast<SVG *>(handler);
 }
 
-} // extern "C"
+char ***svg_handler_to_csv(SvgHandlerPtr handler, int *rows, int *cols) {
+  if (!handler || !rows || !cols)
+    return nullptr;
+
+  auto *h = static_cast<SVG *>(handler);
+  auto table = h->to_csv(h->build(h->tokenize(h->prepare(h->load()))));
+
+  *rows = static_cast<int>(table.size());
+  *cols = table.empty() ? 0 : static_cast<int>(table[0].size());
+
+  // Allocate 2D C array
+  char ***data = new char **[*rows];
+  for (int i = 0; i < *rows; ++i) {
+    data[i] = new char *[*cols];
+    for (int j = 0; j < *cols; ++j) {
+      const auto &cell = table[i][j];
+      data[i][j] = new char[cell.size() + 1];
+      std::strcpy(data[i][j], cell.c_str());
+    }
+  }
+  return data;
+}
+
+void svg_handler_free_csv(char ***data, int rows, int cols) {
+  if (!data)
+    return;
+  for (int i = 0; i < rows; ++i) {
+    for (int j = 0; j < cols; ++j)
+      delete[] data[i][j];
+    delete[] data[i];
+  }
+  delete[] data;
+}
+
+// End of implementations for extern "C"
