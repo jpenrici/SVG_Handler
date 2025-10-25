@@ -67,3 +67,27 @@ void test_svg_handler() {
   std::println("{}[TEST]{} : {} : test completed", color::green, color::reset,
                __PRETTY_FUNCTION__);
 }
+
+// C Interoperability Layer
+extern "C" {
+
+void *svg_handler_create(const char *input_svg, const char *output_csv) {
+  try {
+    return new SVG_HANDLER::SVG(input_svg, output_csv);
+  } catch (...) {
+    return nullptr;
+  }
+}
+
+void svg_handler_execute(void *handler) {
+  if (!handler)
+    return;
+  auto *svg = static_cast<SVG_HANDLER::SVG *>(handler);
+  svg->execute();
+}
+
+void svg_handler_destroy(void *handler) {
+  delete static_cast<SVG_HANDLER::SVG *>(handler);
+}
+
+} // extern "C"

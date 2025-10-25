@@ -6,6 +6,7 @@
  *  2. Process SVG strings and extract tags (string_utils)
  *  3. Build the tree hierarchy (tree_utils)
  *  4. Export to CSV (csv_exporter)
+ *
  */
 
 #pragma once
@@ -96,3 +97,13 @@ namespace SVG_HANDLER {
 } // namespace SVG_HANDLER
 
 void test_svg_handler();
+
+
+// C Interoperability Layer
+extern "C" {
+
+    void* svg_handler_create(const char* input_svg, const char* output_csv);
+    void svg_handler_execute(void* handler);
+    void svg_handler_destroy(void* handler);
+
+}
