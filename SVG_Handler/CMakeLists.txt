@@ -160,6 +160,38 @@ if(BUILD_PYTHON_BINDINGS)
   )
 endif()
 
+# ========== PySide6 GUI (Python frontend) ===========
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
+set(PYSIDE_SRC_DIR "${PROJECT_SOURCE_DIR}/python")
+set(PYSIDE_STAGE_DIR "${PROJECT_SOURCE_DIR}/gui_pySide6")
+set(PYSIDE_CLI_DIR "${PYSIDE_STAGE_DIR}/cli_py3")
+set(PYSIDE_GUI_DIR "${PYSIDE_STAGE_DIR}/gui_pyside6")
+set(PYSIDE_LIB_DIR "${PYSIDE_STAGE_DIR}/lib")
+set(PYSIDE_RES_DIR "${PYSIDE_STAGE_DIR}/resources")
+set(PYSIDE_ENTRY "${PYSIDE_GUI_DIR}/main.py")
+
+add_custom_target(copy_pyside ALL
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${PYSIDE_CLI_DIR}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${PYSIDE_GUI_DIR}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${PYSIDE_LIB_DIR}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${PYSIDE_RES_DIR}
+
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${PROJECT_SOURCE_DIR}/lib/libsvg_handler_py.so
+        ${PYSIDE_LIB_DIR}/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${PROJECT_SOURCE_DIR}/resources
+        ${PYSIDE_RES_DIR}/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${PYSIDE_SRC_DIR}/cli_py3
+        ${PYSIDE_CLI_DIR}/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${PYSIDE_SRC_DIR}/gui_pyside6
+        ${PYSIDE_GUI_DIR}/
+
+    COMMENT "Preparing PySide6 runtime directory (gui_pySide6)..."
+)
+
 # ========== Copy Resources ==========
 file(GLOB RESOURCE_FILES "resources/*")
 file(COPY ${RESOURCE_FILES} DESTINATION ${CMAKE_BINARY_DIR}/cli/resources)
