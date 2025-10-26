@@ -30,7 +30,7 @@ class Color:
 # Core adapter
 # --------------
 class SvgHandlerAdapter:
-    def __init__(self, lib_path: str = "../../lib/libsvg_handler_py.so"):
+    def __init__(self, lib_path: str = "./lib/libsvg_handler_py.so"):
         if not os.path.exists(lib_path):
             raise FileNotFoundError(f"Shared library not found: {lib_path}")
 

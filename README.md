@@ -2,8 +2,9 @@
 
 # SVG Handler
 
-A modular C++ project for parsing, validating, visualizing, and exporting **SVG (Scalable Vector Graphics)** structures into **CSV** tables.
-Includes both **CLI** and **Qt6 GUI**/**GUI (GTKmm 4)** frontends.
+A modular **C++23+** project for parsing, validating, visualizing, and exporting **SVG (Scalable Vector Graphics)** structures into **CSV** tables.
+
+Includes **CLI**, **Qt6**, **GTKmm4**, and **PySide6** graphical frontends — plus **Python interoperability** via shared library bindings.
 
 Designed for clarity, modularity, and minimal dependencies.
 
@@ -11,18 +12,18 @@ Designed for clarity, modularity, and minimal dependencies.
 
 ## Overview
 
-The project is composed of several independent modules:
-
-| Module           | Description                                                                 |
-| ---------------- | --------------------------------------------------------------------------- |
-| **svg_reader**   | Loads SVG files from disk.                                                  |
-| **string_utils** | Cleans and tokenizes SVG text into structured tags.                         |
-| **tree_utils**   | Builds and manages an internal hierarchical tree representation of the SVG. |
-| **csv_exporter** | Converts the tree into a CSV table for data analysis.                       |
-| **svg_handler**  | Orchestrates all modules into a single processing pipeline.                 |
-| **cli**          | Command-line interface for pipeline execution or visualization.             |
-| **gui_gtk4**     | GTKmm4 desktop interface for visual exploration and CSV export.             |
-| **gui_qt6**      | Qt6 desktop interface for visual exploration and CSV export.                |
+| Module / Component  | Description                                                                 |
+| ------------------- | --------------------------------------------------------------------------- |
+| **svg_reader**      | Loads SVG files from disk.                                                  |
+| **string_utils**    | Cleans and tokenizes SVG text into structured tags.                         |
+| **tree_utils**      | Builds and manages a hierarchical tree representation of the SVG.           |
+| **csv_exporter**    | Converts the tree into a CSV table for data analysis.                       |
+| **svg_handler**     | Orchestrates all modules into a single processing pipeline.                 |
+| **cli**             | Command-line interface for running the full pipeline or partial validation. |
+| **gui_qt6**         | Qt6 desktop interface for SVG visualization and CSV export.                 |
+| **gui_gtkmm4**      | GTKmm4 GUI with hierarchical view and export support.                       |
+| **gui_pyside6**     | Python-based GUI using PySide6 (Qt for Python).                             |
+| **python bindings** | Shared C++ library for use via `ctypes` or future `pybind11`.               |
 
 ---
 
@@ -30,22 +31,17 @@ The project is composed of several independent modules:
 
 * **C++ Standard:** C++23 or newer
 * **CMake:** Version 3.25 or higher
-* **Compiler:** GCC 15
+* **Compiler:** GCC 15 or Clang 18+
 * **Optional GUI Frameworks:**
 
   * [Qt 6 Widgets](https://doc.qt.io/qt-6/qtwidgets-index.html)
   * [GTKmm 4](https://gnome.pages.gitlab.gnome.org/gtkmm-documentation/)
+  * [PySide6 (Qt for Python)](https://doc.qt.io/qtforpython/)
 
-To install GTKmm 4 on Linux:
-
-```bash
-sudo apt install libgtkmm-4.0-dev
-```
-
-To install Qt 6 (Widgets module):
+### Install dependencies (Ubuntu/Debian)
 
 ```bash
-sudo apt install qt6-base-dev
+sudo apt install qt6-base-dev libgtkmm-4.0-dev python3-pyside6
 ```
 
 ---
@@ -69,80 +65,96 @@ cmake --build build
 ### Full pipeline
 
 ```bash
-./build/svg_handler_cli resources/sample.svg output/sample.csv
+./build/cli/svg_handler_cli resources/sample.svg output/sample.csv
 ```
 
 ### Validate only
 
 ```bash
-./build/svg_handler_cli --validate resources/sample.svg
+./build/cli/svg_handler_cli --validate resources/sample.svg
 ```
 
 ### View SVG hierarchy
 
 ```bash
-./build/svg_handler_cli --view resources/sample.svg
+./build/cli/svg_handler_cli --view resources/sample.svg
 ```
 
 ---
 
-## Graphical Interface (GTK4 GUI)
+## GUI Interfaces
 
-### Run GUI
+### GTKmm4 GUI
 
 ```bash
 cmake --build build --target run_gtkmm
 ```
 
-or execute directly:
+or run manually:
 
 ```bash
-./build/svg_handler_gtk
+./build/gui_gtk/svg_handler_gtk
 ```
 
-### Features
-
-* File selection dialog for loading SVG.
-* Hierarchical SVG tree visualization.
-* Export to CSV via save dialog.
-* Status bar feedback and error handling.
-
----
-
-## Graphical Interface (Qt6 GUI)
-
-### Run GUI
+### Qt6 GUI
 
 ```bash
 cmake --build build --target run_qtgui
 ```
 
-or execute directly:
+or run manually:
 
 ```bash
-./build/svg_handler_qt
+./build/gui_qt/svg_handler_qt
 ```
 
-### Features
+### PySide6 GUI
 
-* Open and view SVG structure hierarchically
-* Inspect attributes of each tag
-* Export parsed data to CSV
-* Clean, dark-themed Qt6 interface
+Automatically packaged with shared library and resources:
+
+```bash
+cmake --build build --target run_pyside6
+```
+
+This creates:
+
+```
+gui_pyside6/
+ ├── cli_py3/svg_handler.py
+ ├── gui_pyside6/main.py
+ ├── gui_pyside6/mainwindow.py
+ ├── lib/libsvg_handler_py.so
+ └── resources/sample.svg
+```
+
+---
+
+## Python Interoperability
+
+The shared library **`libsvg_handler_py.so`** provides direct access to C++ functions through Python’s `ctypes`.
+
+You can use the adapter script:
+
+```bash
+python3 python/cli_py3/svg_handler.py --example
+```
+
+Or integrate it into your own Python GUI or web application.
 
 ---
 
 ## Testing
 
-A unified test runner is provided:
+Run the unified test suite:
 
 ```bash
-# Run all module tests
-./build/svg_handler_cli_test test=0
-./build/svg_handler_cli_test test=all
+./build/tests/svg_handler_cli_test test=0
+```
 
-# Or run individual modules
-./build/svg_handler_cli_test test=3   # TreeUtils only
+Or run individual module tests:
+
+```bash
+./build/tests/test_run_tree_utils
 ```
 
 ---
@@ -171,10 +183,19 @@ project/
 │   ├── mainwindow.cpp
 │   ├── mainwindow.h
 │   └── mainwindow.ui
-├── gui_gtk4/
+├── gui_gtkmm4/
 │   ├── main.cpp
 │   ├── mainwindow.cpp
 │   └── mainwindow.hpp
+├── python/
+│   ├── cli_py3/
+│   │   └── svg_handler.py
+│   └── gui_pyside6/
+│       ├── main.py
+│       └── mainwindow.py
+├── lib/
+│   ├── libsvg_handler.so
+│   └── libsvg_handler_py.so
 ├── resources/
 │   └── sample.svg
 └── tests/
@@ -193,6 +214,6 @@ project/
 
 ## License
 
-This project is distributed for educational and research purposes under the MIT License.
+This project is distributed for educational and research purposes under the **MIT License**.
 
 ---

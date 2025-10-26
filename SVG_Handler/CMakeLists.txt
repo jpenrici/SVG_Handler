@@ -162,34 +162,97 @@ endif()
 
 # ========== PySide6 GUI (Python frontend) ===========
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
+
 set(PYSIDE_SRC_DIR "${PROJECT_SOURCE_DIR}/python")
-set(PYSIDE_STAGE_DIR "${PROJECT_SOURCE_DIR}/gui_pySide6")
-set(PYSIDE_CLI_DIR "${PYSIDE_STAGE_DIR}/cli_py3")
-set(PYSIDE_GUI_DIR "${PYSIDE_STAGE_DIR}/gui_pyside6")
+set(PYSIDE_STAGE_DIR "${CMAKE_BINARY_DIR}/gui_pyside6")
 set(PYSIDE_LIB_DIR "${PYSIDE_STAGE_DIR}/lib")
 set(PYSIDE_RES_DIR "${PYSIDE_STAGE_DIR}/resources")
-set(PYSIDE_ENTRY "${PYSIDE_GUI_DIR}/main.py")
+set(PYSIDE_VENV_DIR "${PYSIDE_STAGE_DIR}/.venv")
+
+if(WIN32)
+    set(PYSIDE_VENV_PYTHON "${PYSIDE_VENV_DIR}/Scripts/python.exe")
+else()
+    set(PYSIDE_VENV_PYTHON "${PYSIDE_VENV_DIR}/bin/python3")
+endif()
 
 add_custom_target(copy_pyside ALL
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${PYSIDE_CLI_DIR}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${PYSIDE_GUI_DIR}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${PYSIDE_STAGE_DIR}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${PYSIDE_LIB_DIR}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${PYSIDE_RES_DIR}
 
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${PROJECT_SOURCE_DIR}/lib/libsvg_handler_py.so
         ${PYSIDE_LIB_DIR}/
+
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${PROJECT_SOURCE_DIR}/resources
         ${PYSIDE_RES_DIR}/
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${PYSIDE_SRC_DIR}/cli_py3
-        ${PYSIDE_CLI_DIR}/
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${PYSIDE_SRC_DIR}/gui_pyside6
-        ${PYSIDE_GUI_DIR}/
 
-    COMMENT "Preparing PySide6 runtime directory (gui_pySide6)..."
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${PYSIDE_SRC_DIR}/cli_py3/svg_handler.py
+        ${PYSIDE_STAGE_DIR}
+
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${PYSIDE_SRC_DIR}/gui_pyside6/main.py
+        ${PYSIDE_STAGE_DIR}
+
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${PYSIDE_SRC_DIR}/gui_pyside6/mainwindow.py
+        ${PYSIDE_STAGE_DIR}
+
+    COMMENT "Preparing PySide6 runtime directory (gui_pyside6)..."
+)
+
+# --------- Create the virtual environment ---------
+add_custom_target(create_pyside_venv
+    COMMAND ${Python3_EXECUTABLE} -m venv ${PYSIDE_VENV_DIR}
+    COMMENT "Creating Python virtual environment (.venv) for PySide6..."
+)
+
+# --------- Install PySide6 inside .venv ---------
+add_custom_target(install_pyside6
+    COMMAND ${PYSIDE_VENV_PYTHON} -m pip install --upgrade pip
+    COMMAND ${PYSIDE_VENV_PYTHON} -m pip install PySide6
+    DEPENDS create_pyside_venv
+    COMMENT "Installing PySide6 inside the virtual environment..."
+)
+
+# --------- Auxiliary script for running the GUI ---------
+set(PYSIDE_RUNNER_SCRIPT ${CMAKE_BINARY_DIR}/run_pyside.py)
+
+file(WRITE ${PYSIDE_RUNNER_SCRIPT} "
+import os
+import sys
+import subprocess
+
+stage_dir = os.path.abspath(r\"${PYSIDE_STAGE_DIR}\")
+venv_dir = os.path.abspath(r\"${PYSIDE_VENV_DIR}\")
+lib_dir  = os.path.join(stage_dir, 'lib')
+
+if os.name == 'nt':
+    python_exec = os.path.join(venv_dir, 'Scripts', 'python.exe')
+else:
+    python_exec = os.path.join(venv_dir, 'bin', 'python3')
+
+os.environ['LD_LIBRARY_PATH'] = lib_dir + os.pathsep + os.environ.get('LD_LIBRARY_PATH', '')
+
+main_py = os.path.join(stage_dir, 'main.py')
+if not os.path.exists(main_py):
+    print(f'[ERROR] main.py not found at {main_py}')
+    sys.exit(1)
+
+print(f'[INFO] Running PySide6 GUI using virtual environment: {venv_dir}')
+print(f'[INFO] Executing: {python_exec} {main_py}')
+
+subprocess.run([python_exec, main_py], cwd=stage_dir)
+")
+
+# --------- Main execution target ---------
+add_custom_target(run_pyside6
+    COMMAND ${PYSIDE_VENV_PYTHON} ${PYSIDE_RUNNER_SCRIPT}
+    DEPENDS copy_pyside install_pyside6
+    WORKING_DIRECTORY ${PYSIDE_STAGE_DIR}
+    COMMENT "Running PySide6 GUI inside virtual environment..."
 )
 
 # ========== Copy Resources ==========
