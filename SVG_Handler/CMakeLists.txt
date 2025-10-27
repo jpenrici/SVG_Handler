@@ -264,3 +264,86 @@ file(COPY ${RESOURCE_FILES} DESTINATION ${CMAKE_BINARY_DIR}/tests/resources)
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the build type" FORCE)
 endif()
+
+# ========== Custom Clean Target ==========
+add_custom_target(deep_clean
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}
+    COMMENT ">>> Completely cleaning the build directory: ${CMAKE_BINARY_DIR}"
+)
+
+# ========== Construction and execution information ==========
+set(BUILD_DIR "${CMAKE_BINARY_DIR}")
+set(BUILD_TYPE_LOWERCASE ${CMAKE_BUILD_TYPE})
+string(TOLOWER ${BUILD_TYPE_LOWERCASE} BUILD_TYPE_LOWERCASE)
+
+message(STATUS "")
+message(STATUS "======================================================================")
+message(STATUS "--- CMAKE CONFIGURATION SUCCESSFUL ---")
+message(STATUS "Build Type set to: ${CMAKE_BUILD_TYPE}")
+message(STATUS "")
+message(STATUS "--- BUILD INSTRUCTIONS ---")
+
+message(STATUS "1. To build using CMake (Recommended for cross-platform):")
+message(STATUS "   cmake --build ${BUILD_DIR}")
+
+if(CMAKE_GENERATOR MATCHES "Makefiles" OR CMAKE_GENERATOR MATCHES "Ninja")
+    message(STATUS "")
+    message(STATUS "2. Alternatively, use the native build command (Generator: ${CMAKE_GENERATOR}):")
+    message(STATUS "   cd ${BUILD_DIR}")
+
+    if(CMAKE_GENERATOR MATCHES "Makefiles")
+        message(STATUS "   make")
+    elseif(CMAKE_GENERATOR MATCHES "Ninja")
+        message(STATUS "   ninja")
+    endif()
+
+    message(STATUS "   (Note: Use 'make clean' or 'ninja clean' for standard cleanup)")
+endif()
+
+message(STATUS "--------------------------")
+message(STATUS "")
+message(STATUS "--- RUN COMMANDS ---")
+
+# 1. CLI Executable
+message(STATUS "-> CLI Application (svg_handler_cli):")
+message(STATUS "   Run: ${BUILD_DIR}/cli/${PROGRAM_NAME}")
+message(STATUS "")
+
+# 2. Qt6 GUI Executable
+message(STATUS "-> Qt6 GUI (svg_handler_qt):")
+message(STATUS "   Build & Run: cmake --build ${BUILD_DIR} --target run_qtgui")
+message(STATUS "")
+
+# 3. GTKmm4 GUI Executable
+message(STATUS "-> GTKmm4 GUI (svg_handler_gtk):")
+message(STATUS "   Build & Run: cmake --build ${BUILD_DIR} --target run_gtkmm")
+message(STATUS "")
+
+# 4. PySide6 GUI Executable
+message(STATUS "-> PySide6 GUI (Python/PySide6):")
+message(STATUS "   Setup & Run: cmake --build ${BUILD_DIR} --target run_pyside6")
+message(STATUS "")
+
+# 5. Tests
+message(STATUS "-> Unit Tests:")
+message(STATUS "   Run all main tests: cmake --build ${BUILD_DIR} --target test_run")
+message(STATUS "")
+message(STATUS "-> Internal Module Test [ string_utils ]:")
+message(STATUS "   Build & Run: cmake --build ${BUILD_DIR} --target test_string_utils")
+message(STATUS "")
+message(STATUS "-> Internal Module Test [ svg_reader ]:")
+message(STATUS "   Build & Run: cmake --build ${BUILD_DIR} --target test_svg_reader")
+message(STATUS "")
+message(STATUS "-> Internal Module Test [ tree_utils ]:")
+message(STATUS "   Build & Run: cmake --build ${BUILD_DIR} --target test_tree_utils")
+message(STATUS "")
+message(STATUS "-> Internal Module Test [ csv_exporter ]:")
+message(STATUS "   Build & Run: cmake --build ${BUILD_DIR} --target test_csv_exporter")
+message(STATUS "")
+
+# 6. Clean
+message(STATUS "-> Full Cleanup:")
+message(STATUS "   Remove ALL build files/cache: cmake --build ${BUILD_DIR} --target deep_clean")
+
+message(STATUS "======================================================================")
+message(STATUS "")
