@@ -217,3 +217,8 @@ project/
 This project is distributed for educational and research purposes under the **MIT License**.
 
 ---
+
+## Display
+
+![display](https://github.com/jpenrici/SVG_Handler/blob/main/display/display.png)
+
